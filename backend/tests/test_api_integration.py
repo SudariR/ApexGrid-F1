@@ -1,18 +1,12 @@
 """HTTP integration tests.
 
-These exercise the full stack - routing, param parsing, schema serialization,
-and error handling - by calling the endpoints via FastAPI's TestClient.
 
-IMPORTANT DESIGN CHOICE: We MONKEYPATCH the service layer so these tests never
-touch the live (flaky) F1 data provider. This keeps them fast and deterministic
-while still testing everything from the HTTP boundary down to the validated
-JSON response. The pure mapping + data logic is tested separately offline.
 """
 import pytest
 from fastapi.testclient import TestClient
 
 from main import app
-from app.services import race_service, standings_service
+from app.services import race_service, standings_service, telemetry_service
 
 
 @pytest.fixture
@@ -113,6 +107,64 @@ class TestStandingsEndpoint:
         monkeypatch.setattr(standings_service, "get_standings_payload", boom)
         r = client.get("/api/v1/standings")
         assert r.status_code == 503
+
+class TestTelemetryEndpoint:
+    def test_unavailable_laps_returns_503(self, client, monkeypatch):
+        from app.services.errors import UpstreamDataUnavailableError
+
+        def boom(**kwargs):
+            raise UpstreamDataUnavailableError(
+                "Lap/telemetry data unavailable for GP round 12 in 2026."
+            )
+
+        monkeypatch.setattr(telemetry_service, "get_compare_payload", boom)
+        r = client.get(
+            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS"
+            "&season=2026&round=12&session=Q"
+        )
+        assert r.status_code == 503
+
+    def test_invalid_session_returns_422(self, client):
+        r = client.get(
+            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS&session=XX"
+        )
+        assert r.status_code == 422
+
+    def test_missing_driver_params_returns_422(self, client):
+        # driver_a and driver_b are required query params
+        r = client.get("/api/v1/telemetry/compare")
+        assert r.status_code == 422
+
+    def test_success_returns_valid_schema(self, client, monkeypatch):
+        # Provide a fake payload matching the schema so we test full serialisation
+        # without the live telemetry provider.
+        point = {
+            "distance": 0.0, "x": 0.0, "y": 0.0, "speed_kmh": 300.0,
+            "throttle_pct": 100.0, "brake": False, "gear": 4, "drs": 0,
+        }
+
+        def fake_payload(**kwargs):
+            return {
+                "season": 2026, "round": 12, "event_name": "Dutch Grand Prix",
+                "session_type": "Q",
+                "track": [{"distance": 0.0, "x": 0.0, "y": 0.0}],
+                "drivers": [
+                    {"driver_code": "NOR", "lap_number": 1, "lap_time_ms": 60000,
+                     "points": [point]},
+                    {"driver_code": "RUS", "lap_number": 2, "lap_time_ms": 61000,
+                     "points": [point]},
+                ],
+            }
+
+        monkeypatch.setattr(telemetry_service, "get_compare_payload", fake_payload)
+        r = client.get(
+            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS&session=Q"
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["event_name"] == "Dutch Grand Prix"
+        assert len(body["drivers"]) == 2
+        assert body["drivers"][0]["driver_code"] == "NOR"
 
 
 # --- versioning / routing --------------------------------------------------
