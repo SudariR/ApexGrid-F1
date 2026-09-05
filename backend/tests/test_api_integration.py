@@ -1,12 +1,15 @@
 """HTTP integration tests.
-
-
 """
 import pytest
 from fastapi.testclient import TestClient
 
 from main import app
-from app.services import race_service, standings_service, telemetry_service
+from app.services import (
+    analytics_service,
+    race_service,
+    standings_service,
+    telemetry_service,
+)
 
 
 @pytest.fixture
@@ -108,6 +111,10 @@ class TestStandingsEndpoint:
         r = client.get("/api/v1/standings")
         assert r.status_code == 503
 
+
+# --- telemetry -------------------------------------------------------------
+
+
 class TestTelemetryEndpoint:
     def test_unavailable_laps_returns_503(self, client, monkeypatch):
         from app.services.errors import UpstreamDataUnavailableError
@@ -158,13 +165,74 @@ class TestTelemetryEndpoint:
 
         monkeypatch.setattr(telemetry_service, "get_compare_payload", fake_payload)
         r = client.get(
-            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS&session=Q"
+            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS&round=12&session=Q"
         )
         assert r.status_code == 200
         body = r.json()
         assert body["event_name"] == "Dutch Grand Prix"
         assert len(body["drivers"]) == 2
         assert body["drivers"][0]["driver_code"] == "NOR"
+
+
+# --- analytics -------------------------------------------------------------
+
+
+class TestAnalyticsEndpoints:
+    def test_pace_returns_valid_schema(self, client, monkeypatch):
+        def fake_pace(season, gp_round, session_type, driver_code):
+            return {
+                "season": season, "round": gp_round, "event_name": "Dutch Grand Prix",
+                "driver_code": driver_code, "session_type": session_type,
+                "stats": {"count": 10, "mean_s": 90.5, "median_s": 90.4,
+                          "std_s": 0.5, "cv_pct": 0.55, "q1_s": 90.1,
+                          "q3_s": 91.0, "min_s": 90.0, "max_s": 92.0},
+                "kde": [{"lap_time_s": 90.0, "density": 0.1}],
+            }
+        monkeypatch.setattr(analytics_service, "get_pace_payload", fake_pace)
+        r = client.get("/api/v1/analytics/pace?driver=NOR&season=2026&round=12")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["driver_code"] == "NOR"
+        assert body["stats"]["cv_pct"] == 0.55
+
+    def test_tire_returns_valid_schema(self, client, monkeypatch):
+        def fake_tire(season, gp_round, session_type, driver_code):
+            return {
+                "season": season, "round": gp_round, "event_name": "Dutch Grand Prix",
+                "driver_code": driver_code, "session_type": session_type,
+                "stints": [{"compound": "SOFT", "stint": 1, "n_laps": 20,
+                            "slope_s_per_lap": 0.08, "intercept_s": 90.0,
+                            "r2": 0.95}],
+            }
+        monkeypatch.setattr(analytics_service, "get_tire_payload", fake_tire)
+        r = client.get(
+            "/api/v1/analytics/tire-degradation?driver=NOR&season=2026&round=12"
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["stints"][0]["compound"] == "SOFT"
+
+    def test_bad_session_returns_422(self, client):
+        r = client.get("/api/v1/analytics/pace?driver=NOR&session=ZZ")
+        assert r.status_code == 422
+
+    def test_pace_missing_round_returns_422(self, client):
+        r = client.get("/api/v1/analytics/pace?driver=NOR")
+        assert r.status_code == 422
+
+    def test_tire_missing_round_returns_422(self, client):
+        r = client.get("/api/v1/analytics/tire-degradation?driver=NOR")
+        assert r.status_code == 422
+
+    def test_upstream_error_returns_503(self, client, monkeypatch):
+        from app.services.errors import UpstreamDataUnavailableError
+
+        def boom(season, gp_round, session_type, driver_code):
+            raise UpstreamDataUnavailableError("lap data unavailable")
+
+        monkeypatch.setattr(analytics_service, "get_pace_payload", boom)
+        r = client.get("/api/v1/analytics/pace?driver=NOR&round=12")
+        assert r.status_code == 503
 
 
 # --- versioning / routing --------------------------------------------------

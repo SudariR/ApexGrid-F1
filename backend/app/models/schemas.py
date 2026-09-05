@@ -133,3 +133,68 @@ class TelemetryComparisonResponse(BaseModel):
         ...,
         description="One trace per driver. Order matches the requested driverA/driverB.",
     )
+
+# --- Analytics (pace consistency & tire degradation) ------------------------
+
+
+class PaceStats(BaseModel):
+    """Descriptive stats of a driver's clean race-lap times."""
+
+    count: int = Field(..., description="Number of clean laps used.")
+    mean_s: float = Field(..., description="Mean clean-lap time (seconds).")
+    median_s: float = Field(..., description="Median clean-lap time (seconds).")
+    std_s: float = Field(..., description="Std deviation of clean-lap times.")
+    cv_pct: float = Field(
+        ..., description="Coefficient of variation (%). Lower = more consistent."
+    )
+    q1_s: float = Field(..., description="1st quartile lap time (s).")
+    q3_s: float = Field(..., description="3rd quartile lap time (s).")
+    min_s: float = Field(..., description="Fastest clean lap (s).")
+    max_s: float = Field(..., description="Slowest clean lap (s).")
+
+
+class KdePoint(BaseModel):
+    """A single point on the lap-time distribution curve."""
+
+    lap_time_s: float = Field(..., description="Lap time (s).")
+    density: float = Field(..., description="Estimated probability density.")
+
+
+class PaceResponse(BaseModel):
+    """Pace consistency analytics for one driver in one session."""
+
+    season: int = Field(..., description="Season year.")
+    round: int = Field(..., description="Grand Prix round.")
+    event_name: str = Field(..., description="e.g. 'Dutch Grand Prix'.")
+    driver_code: str = Field(..., description="Driver analysed.")
+    session_type: str = Field(..., description="e.g. 'R' (race).")
+    stats: PaceStats = Field(..., description="Boxplot/descriptive stats.")
+    kde: list[KdePoint] = Field(
+        ..., description="Lap-time distribution curve for charting."
+    )
+
+
+class TireStint(BaseModel):
+    """Degradation regression result for one tyre stint."""
+
+    compound: str = Field(..., description="Tyre compound: SOFT/MEDIUM/HARD.")
+    stint: int = Field(..., description="Stint number.")
+    n_laps: int = Field(..., description="Laps in the stint used for the fit.")
+    slope_s_per_lap: float = Field(
+        ..., description="Degradation: extra seconds per lap as the stint ages."
+    )
+    intercept_s: float = Field(..., description="Fitted lap time at tyre age 0.")
+    r2: float = Field(..., description="Goodness of fit (0-1).")
+
+
+class TireDegradationResponse(BaseModel):
+    """Tire degradation per stint for one driver in one session."""
+
+    season: int = Field(..., description="Season year.")
+    round: int = Field(..., description="Grand Prix round.")
+    event_name: str = Field(..., description="e.g. 'Dutch Grand Prix'.")
+    driver_code: str = Field(..., description="Driver analysed.")
+    session_type: str = Field(..., description="e.g. 'R' (race).")
+    stints: list[TireStint] = Field(
+        ..., description="Degradation fit per stint, ordered by compound+stint."
+    )
