@@ -74,3 +74,62 @@ class StandingsResponse(BaseModel):
     constructors: list[ConstructorStanding] = Field(
         ..., description="Constructors' championship, ordered by position."
     )
+class TelemetryPoint(BaseModel):
+    """A single sampled point along the track for one driver's lap.
+
+    `distance` is the lap progress in metres and is used to ALIGN two drivers'
+    laps against each other (distance travelled is comparable across laps).
+    """
+
+    distance: float = Field(..., description="Distance travelled along lap (m).")
+    x: float = Field(..., description="Track X coordinate (metres, raw).")
+    y: float = Field(..., description="Track Y coordinate (metres, raw).")
+    speed_kmh: float = Field(..., description="Speed in km/h.")
+    throttle_pct: float = Field(..., description="Throttle 0-100%.")
+    brake: bool = Field(..., description="True if braking.")
+    gear: int = Field(..., description="Selected gear (1-8).")
+    drs: int = Field(..., description="DRS state (0 = off, 1 = on, 2 = eligible).")
+
+
+class TrackPoint(BaseModel):
+    """A point of the shared track geometry (position only)."""
+
+    distance: float = Field(..., description="Distance travelled along lap (m).")
+    x: float = Field(..., description="Track X coordinate (metres, raw).")
+    y: float = Field(..., description="Track Y coordinate (metres, raw).")
+
+
+class DriverLapTrace(BaseModel):
+    """The sampled telemetry trace for one driver's chosen lap."""
+
+    driver_code: str = Field(..., description="3-letter driver code.")
+    lap_number: int = Field(..., description="The lap number used.")
+    lap_time_ms: int | None = Field(
+        None, description="Lap time in milliseconds (if known)."
+    )
+    points: list[TelemetryPoint] = Field(
+        ..., description="Sampled telemetry, ordered by distance."
+    )
+
+
+class TelemetryComparisonResponse(BaseModel):
+    """Dual-driver telemetry comparison for the telemetry track map.
+
+    Provides: the shared track geometry, plus one sampled lap trace per driver.
+    All points expose x/y/speed/throttle/brake/gear/drs and a `distance` value
+    that lets the frontend align the two laps and compute deltas.
+    """
+
+    season: int = Field(..., description="Season year.")
+    round: int = Field(..., description="Grand Prix round number.")
+    event_name: str = Field(..., description="e.g. 'Dutch Grand Prix'.")
+    session_type: str = Field(
+        ..., description="Source session: 'Q', 'R', 'FP1', etc."
+    )
+    track: list[TrackPoint] = Field(
+        ..., description="Shared track geometry (position + distance)."
+    )
+    drivers: list[DriverLapTrace] = Field(
+        ...,
+        description="One trace per driver. Order matches the requested driverA/driverB.",
+    )

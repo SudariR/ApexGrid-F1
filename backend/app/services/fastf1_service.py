@@ -83,7 +83,7 @@ def load_session(
     *,
     require_laps: bool = True,
 ) -> Session:
-   
+    """Load a session, returning a clean, *verified* object."""
     session = _get_session(year, gp_round, session_type)
 
     try:
@@ -95,8 +95,7 @@ def load_session(
             f"Could not load {session_type} session for GP round {gp_round} in {year}."
         ) from exc
 
-    # Verify what we asked for actually loaded.
-    if require_laps and getattr(session, "laps", None) is None:
+    if require_laps and not _has_laps(session):
         logger.warning("Lap data missing for %s GP %s %s (provider issue?).",
                        year, gp_round, session_type)
         raise UpstreamDataUnavailableError(
@@ -104,3 +103,16 @@ def load_session(
         )
 
     return session
+
+
+def _has_laps(session: Session) -> bool:
+    """Safely report whether the session has lap data loaded.
+
+    Uses the private _laps attribute to avoid triggering fastf1's raising
+    property. Treats any non-empty frame as 'present'.
+    """
+    try:
+        laps = getattr(session, "_laps", None)
+        return laps is not None and len(laps) > 0
+    except Exception:
+        return False
