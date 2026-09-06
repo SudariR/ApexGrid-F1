@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { F1_2026_CALENDAR } from "@/lib/calendarData";
 import { RaceEvent } from "@/types/calendar";
+import { useTimelineData } from "@/lib/hooks/useTimelineData";
 import { TimelineCircuit } from "./TimelineCircuit";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -287,6 +288,19 @@ function RaceCard({
               </div>
             </div>
           )}
+          {isCurrent && !race.winner && (
+            <div>
+              <div className="font-mono text-[8px] tracking-[0.2em] text-accent uppercase mb-1">RACE WEEKEND ACTIVE</div>
+              <div className="font-display font-black text-lg tracking-tight uppercase text-ink leading-tight">
+                GRAND PRIX IN PROGRESS
+              </div>
+              <div className="mt-2 flex gap-3 font-mono text-[9px] text-ink-light/65">
+                <span><span className="text-ink font-bold">{race.total_laps}</span> L</span>
+                <span><span className="text-ink font-bold">{race.corner_count}</span> CRN</span>
+                <span><span className="text-ink font-bold">{race.drs_zones}</span> DRS</span>
+              </div>
+            </div>
+          )}
           {isUpcoming && (
             <div className="font-mono text-[9px] text-ink-light/40 tracking-widest uppercase flex items-center gap-2">
               <span className="w-1 h-1 rounded-full border border-ink-light/30" />
@@ -306,20 +320,42 @@ export function SeasonTimeline() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
-  const allRaces = F1_2026_CALENDAR;
+  const {
+    events: allRaces,
+    season,
+    totalRounds,
+    currentRound,
+    isLive,
+  } = useTimelineData();
+
+  const completedCount = allRaces.filter((r) => r.round < currentRound).length;
+  const upcomingCount = allRaces.filter((r) => r.round > currentRound).length;
+
   const totalCards = allRaces.length;
   const canvasWidth = CANVAS_PADDING_X * 2 + totalCards * CARD_W + (totalCards - 1) * CARD_GAP;
 
   // Compute per-card layout
   const cards = allRaces.map((race, i) => {
-    const isCurrent = race.status === "current";
+    const isCurrent = race.round === currentRound;
+    const isCompleted = race.round < currentRound;
+    const isUpcoming = race.round > currentRound;
     const cardW = isCurrent ? CARD_W + 60 : CARD_W;
     const cardH = isCurrent ? CARD_H_CURRENT : CARD_H_NORMAL;
     const yOffset = ROUND_Y_OFFSETS[race.round] ?? 0;
     const cardTop = CENTRE_Y + yOffset - cardH / 2;
     const cardLeft = CANVAS_PADDING_X + i * (CARD_W + CARD_GAP);
     const dotY = CENTRE_Y + yOffset; // mid of card in canvas coords
-    return { race, cardLeft, cardTop, cardW, cardH, dotY, isCurrent, isCompleted: race.status === "completed", isUpcoming: race.status === "upcoming" };
+    return {
+      race,
+      cardLeft,
+      cardTop,
+      cardW,
+      cardH,
+      dotY,
+      isCurrent,
+      isCompleted,
+      isUpcoming,
+    };
   });
 
   const nodes: NodePos[] = cards.map(c => ({ x: c.cardLeft + c.cardW / 2, y: c.dotY }));
@@ -329,15 +365,16 @@ export function SeasonTimeline() {
   // Auto-scroll to current race
   useEffect(() => {
     if (!mounted) return;
-    const currentIdx = allRaces.findIndex(r => r.status === "current");
+    const currentIdx = allRaces.findIndex(r => r.round === currentRound);
     if (currentIdx < 0 || !scrollRef.current) return;
     const c = cards[currentIdx];
+    if (!c) return;
     const targetX = c.cardLeft - window.innerWidth / 2 + c.cardW / 2;
     setTimeout(() => {
       scrollRef.current?.scrollTo({ left: Math.max(0, targetX), behavior: "smooth" });
     }, 700);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted]);
+  }, [mounted, currentRound]);
 
   // Redirect vertical wheel delta to horizontal scroll
   useEffect(() => {
@@ -360,10 +397,10 @@ export function SeasonTimeline() {
       {/* Engineering grid background (static area) */}
       <div className="absolute inset-0 bg-engineering-grid pointer-events-none opacity-55" />
 
-      {/* â”€â”€ SECTION HEADER â”€â”€ */}
+      {/* ── SECTION HEADER ── */}
       <div className="relative z-10 px-6 md:px-12 lg:px-20 pt-28 pb-8">
         <div className="section-index mb-3">
-          04 &nbsp;/&nbsp; 2026 FIA FORMULA 1 WORLD CHAMPIONSHIP
+          04 &nbsp;/&nbsp; {season} FIA FORMULA 1 WORLD CHAMPIONSHIP
         </div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
@@ -371,21 +408,25 @@ export function SeasonTimeline() {
               SEASON TIMELINE
             </h2>
             <p className="font-mono text-xs md:text-sm text-ink-light tracking-widest uppercase mt-3">
-              CHRONOLOGICAL ARCHIVE &bull; 24 ROUNDS &bull; REAL TRACK GEOMETRIES
+              CHRONOLOGICAL ARCHIVE &bull; {totalRounds} ROUNDS &bull; REAL TRACK GEOMETRIES
             </p>
           </div>
-          <div className="font-mono text-[11px] text-ink-light tracking-widest uppercase flex items-center gap-6">
+          <div className="font-mono text-[11px] text-ink-light tracking-widest uppercase flex flex-wrap items-center gap-4 md:gap-6">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-ink-light opacity-50" />
-              13 COMPLETED
+              {completedCount} COMPLETED
             </span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              RD 14 CURRENT
+              RD {currentRound} CURRENT
             </span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full border border-ink-light opacity-30" />
-              10 UPCOMING
+              {upcomingCount} UPCOMING
+            </span>
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-ink-faint/40 bg-bg/70 text-[9px] tracking-[0.15em]">
+              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? "bg-accent animate-pulse" : "bg-ink-light"}`} />
+              {isLive ? "2026 SCHEDULE LIVE" : "LOCAL ARCHIVE"}
             </span>
           </div>
         </div>

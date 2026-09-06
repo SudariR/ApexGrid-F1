@@ -28,3 +28,22 @@ export interface RaceEvent {
     year: number;
   };
 }
+
+export interface BackendScheduleEvent {
+  round: number;
+  event_name: string;
+  country: string;
+  location: string;
+  race_date: string;
+  status: "completed" | "current" | "upcoming";
+  event_format?: string;
+  winner?: RaceWinner | null;
+}
+
+export interface BackendScheduleResponse {
+  season: number;
+  total_rounds: number;
+  current_round?: number | null;
+  events: BackendScheduleEvent[];
+}
+

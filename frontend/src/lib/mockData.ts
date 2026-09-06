@@ -2,7 +2,7 @@ import { HeroResponse, DriverStanding, ConstructorStanding } from "@/types/f1";
 
 export const MOCK_HERO_DATA: HeroResponse = {
   season: 2026,
-  round: 14,
+  round: 12,
   event_name: "Dutch Grand Prix",
   country: "Netherlands",
   location: "Circuit Zandvoort",

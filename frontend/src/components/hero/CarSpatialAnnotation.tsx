@@ -21,6 +21,7 @@ interface CarSpatialAnnotationProps {
   laps?: number | null;
   pitStops?: number;
   position?: number;
+  gridPosition?: number | null;
   team?: string;
   circuit?: string;
   points?: number | null;
@@ -30,18 +31,34 @@ interface CarSpatialAnnotationProps {
 export function CarSpatialAnnotation({
   fastestLap,
   totalTime,
+  laps,
   pitStops = 2,
+  gridPosition,
+  points,
   circuit = "Zandvoort",
   className = "",
 }: CarSpatialAnnotationProps) {
   const annotations: Annotation[] = [
-    // 1. FASTEST LAP — strictly West (pure left horizontal) of the car's front wing/wheel
+    // 1. FRONT WING: Fastest Lap or Race Distance Laps
     ...(fastestLap
       ? [
           {
             id: "fastest-lap",
             label: "FASTEST LAP",
             value: fastestLap,
+            x: -8,
+            y: 52,
+            lineEndX: 14,
+            lineEndY: 54.5,
+            align: "left" as const,
+          },
+        ]
+      : laps
+      ? [
+          {
+            id: "race-laps",
+            label: "RACE DISTANCE",
+            value: `${laps} LAPS`,
             x: -8,
             y: 52,
             lineEndX: 14,
@@ -67,17 +84,32 @@ export function CarSpatialAnnotation({
         ]
       : []),
 
-    // 3. PIT STOPS — right area next to rear tyre with tight shortened leader line
-    {
-      id: "pit-stops",
-      label: "PIT STOPS",
-      value: `${pitStops}x`,
-      x: 95,
-      y: 42,
-      lineEndX: 84,
-      lineEndY: 44,
-      align: "right" as const,
-    },
+    // 3. POINTS / PIT STOPS — right area next to rear tyre
+    ...(points !== undefined && points !== null
+      ? [
+          {
+            id: "points-scored",
+            label: "POINTS SCORED",
+            value: `+${points} PTS`,
+            x: 95,
+            y: 42,
+            lineEndX: 84,
+            lineEndY: 44,
+            align: "right" as const,
+          },
+        ]
+      : [
+          {
+            id: "pit-stops",
+            label: "PIT STOPS",
+            value: `${pitStops}x`,
+            x: 95,
+            y: 42,
+            lineEndX: 84,
+            lineEndY: 44,
+            align: "right" as const,
+          },
+        ]),
   ];
 
   return (

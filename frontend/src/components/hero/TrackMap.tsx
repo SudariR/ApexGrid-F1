@@ -4,13 +4,16 @@ import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { F1_2026_CALENDAR } from "@/lib/calendarData";
+
 interface TrackMapProps {
   circuitName?: string;
+  round?: number;
   className?: string;
   opacity?: number;
 }
 
-// Zandvoort circuit approximate SVG path (normalized to viewBox 0 0 400 300)
+// Default fallback track path (Zandvoort)
 const ZANDVOORT_PATH =
   "M 200 20 C 240 18 275 22 295 38 C 318 56 325 80 320 100 " +
   "C 315 120 300 130 290 148 C 280 166 278 180 285 195 " +
@@ -22,7 +25,7 @@ const ZANDVOORT_PATH =
   "C 74 122 60 114 54 100 C 48 86 52 68 64 54 " +
   "C 78 38 108 25 140 20 C 160 17 180 18 200 20 Z";
 
-// Corner marker positions [x, y, label]
+// Default Corner markers [x, y, label]
 const CORNER_MARKERS: [number, number, string][] = [
   [295, 38, "T1"],
   [320, 100, "T3"],
@@ -43,9 +46,31 @@ const SECTOR_MARKERS: [number, number, number, string][] = [
   [138, 268, 0, "S3"],
 ];
 
-export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 1 }: TrackMapProps) {
+export function TrackMap({ circuitName = "Zandvoort", round, className = "", opacity = 1 }: TrackMapProps) {
   const pathRef = useRef<SVGPathElement>(null);
   const containerRef = useRef<SVGSVGElement>(null);
+
+  // Find matching circuit in calendar data (prioritize circuit / location name, fallback to round)
+  const event = F1_2026_CALENDAR.find((e) => {
+    if (circuitName) {
+      const normName = circuitName.toLowerCase();
+      if (
+        e.location.toLowerCase().includes(normName) ||
+        normName.includes(e.location.toLowerCase()) ||
+        e.event_name.toLowerCase().includes(normName) ||
+        normName.includes(e.event_name.toLowerCase()) ||
+        e.circuit_name.toLowerCase().includes(normName) ||
+        normName.includes(e.circuit_name.toLowerCase())
+      ) {
+        return true;
+      }
+    }
+    if (round && e.round === round) return true;
+    return false;
+  });
+
+  const trackPath = event?.track_path || ZANDVOORT_PATH;
+  const startFinish = event?.start_finish || [195, 20];
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -59,12 +84,12 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
       strokeDashoffset: length,
     });
 
-    // Animate path draw on mount
+    // Animate path draw on mount or path change
     gsap.to(pathRef.current, {
       strokeDashoffset: 0,
-      duration: 2.8,
+      duration: 2.5,
       ease: "power2.inOut",
-      delay: 0.4,
+      delay: 0.3,
     });
 
     // Subtle parallax on scroll
@@ -80,7 +105,7 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
         },
       });
     }
-  }, []);
+  }, [trackPath]);
 
   return (
     <svg
@@ -93,7 +118,7 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
     >
       {/* Background subtle track glow */}
       <path
-        d={ZANDVOORT_PATH}
+        d={trackPath}
         fill="none"
         stroke="rgba(0,255,102,0.04)"
         strokeWidth="8"
@@ -102,7 +127,7 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
       {/* Main track outline — animated draw */}
       <path
         ref={pathRef}
-        d={ZANDVOORT_PATH}
+        d={trackPath}
         fill="none"
         stroke="rgba(13,13,15,0.14)"
         strokeWidth="1.5"
@@ -112,7 +137,7 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
 
       {/* Inner kerb line — offset inward, static */}
       <path
-        d={ZANDVOORT_PATH}
+        d={trackPath}
         fill="none"
         stroke="rgba(13,13,15,0.05)"
         strokeWidth="0.5"
@@ -121,18 +146,27 @@ export function TrackMap({ circuitName = "Zandvoort", className = "", opacity = 
 
       {/* Start / Finish line */}
       <line
-        x1="195" y1="16"
-        x2="205" y2="16"
+        x1={startFinish[0] - 5}
+        y1={startFinish[1] - 4}
+        x2={startFinish[0] + 5}
+        y2={startFinish[1] - 4}
         stroke="rgba(0,255,102,0.7)"
         strokeWidth="2.5"
         strokeLinecap="round"
       />
-      <text x="207" y="19" fontSize="5" fill="rgba(0,255,102,0.6)" fontFamily="JetBrains Mono, monospace" letterSpacing="0.1em">
+      <text
+        x={startFinish[0] + 7}
+        y={startFinish[1] - 1}
+        fontSize="5"
+        fill="rgba(0,255,102,0.6)"
+        fontFamily="JetBrains Mono, monospace"
+        letterSpacing="0.1em"
+      >
         START/FINISH
       </text>
 
       {/* Corner markers */}
-      {CORNER_MARKERS.slice(0, 8).map(([x, y, label], i) => (
+      {CORNER_MARKERS.slice(0, 6).map(([x, y, label], i) => (
         <g key={i}>
           <circle cx={x} cy={y} r="1.5" fill="rgba(13,13,15,0.25)" />
           <text

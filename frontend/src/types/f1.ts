@@ -27,23 +27,33 @@ export interface DriverStanding {
   driver_code: string;
   full_name: string;
   team_name: string;
-  driver_number: number;
+  driver_number?: number;
+  nationality?: string | null;
   points: number;
   wins: number;
-  podiums: number;
-  delta_position: number; // e.g. +1, -1, 0 compared to last race
+  podiums?: number;
+  delta_position?: number; // e.g. +1, -1, 0 compared to last race
   avatar_url?: string;
 }
 
 export interface ConstructorStanding {
   position: number;
   team_name: string;
+  name?: string;
+  nationality?: string | null;
   points: number;
   wins: number;
-  podiums: number;
-  delta_position: number;
+  podiums?: number;
+  delta_position?: number;
   driver_codes: string[];
   car_slug?: string;
+}
+
+export interface StandingsResponse {
+  season: number;
+  round: number;
+  drivers: DriverStanding[];
+  constructors: ConstructorStanding[];
 }
 
 export interface TeamColorInfo {

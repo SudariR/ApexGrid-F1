@@ -11,7 +11,7 @@ import { Helmet3DViewer } from "@/components/standings/Helmet3DViewer";
 import { StandingsDrawer } from "@/components/ui/StandingsDrawer";
 
 export function DriversStandings() {
-  const { drivers } = useDriverStandings();
+  const { drivers, round, season, isLive } = useDriverStandings();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -66,7 +66,7 @@ export function DriversStandings() {
             paddingTop: "0.1em",
           }}
         >
-          DRIVERS • FIA 2026 • DRIVERS • FIA 2026 • DRIVERS • FIA 2026 • DRIVERS • FIA 2026 •
+          DRIVERS • FIA {season || 2026} • DRIVERS • FIA {season || 2026} • DRIVERS • FIA {season || 2026} •
         </div>
       </div>
 
@@ -83,9 +83,9 @@ export function DriversStandings() {
         }}
       >
         <Helmet3DViewer
-          driverCode={drivers[0]?.driver_code || "NOR"}
-          driverName={drivers[0]?.full_name || "Lando Norris"}
-          teamName={drivers[0]?.team_name || "McLaren"}
+          driverCode={drivers[0]?.driver_code || "RUS"}
+          driverName={drivers[0]?.full_name || "George Russell"}
+          teamName={drivers[0]?.team_name || "Mercedes"}
           accentColor="#00FF66"
         />
       </div>
@@ -112,15 +112,15 @@ export function DriversStandings() {
           </div>
           <div className="flex items-center gap-6 mt-4">
             <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
-              SEASON 2026
+              SEASON {season || 2026}
             </div>
             <div className="w-12 h-[1px] bg-ink-faint" />
             <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
-              ROUND 14 / 24
+              ROUND {round || 12} / 24
             </div>
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <div className={`w-2 h-2 rounded-full ${isLive ? "bg-accent animate-pulse" : "bg-ink-light"}`} />
             <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
-              FIA VERIFIED
+              {isLive ? "FIA VERIFIED LIVE" : "FIA ARCHIVE"}
             </div>
           </div>
         </div>
@@ -307,6 +307,8 @@ export function DriversStandings() {
         onClose={() => setDrawerOpen(false)}
         type="drivers"
         drivers={drivers}
+        season={season}
+        round={round}
       />
     </section>
   );

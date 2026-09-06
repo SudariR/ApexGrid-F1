@@ -14,6 +14,8 @@ interface StandingsDrawerProps {
   type: "drivers" | "constructors";
   drivers?: DriverStanding[];
   constructors?: ConstructorStanding[];
+  season?: number;
+  round?: number;
 }
 
 export function StandingsDrawer({
@@ -22,6 +24,8 @@ export function StandingsDrawer({
   type,
   drivers = [],
   constructors = [],
+  season,
+  round,
 }: StandingsDrawerProps) {
   const isDriver = type === "drivers";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -91,7 +95,7 @@ export function StandingsDrawer({
             >
               <div>
                 <div className="font-mono text-[9px] tracking-[0.25em] text-[#999999] uppercase mb-1.5">
-                  FIA OFFICIAL · 2026 · ROUND 14/24
+                  FIA OFFICIAL · {season || 2026} · ROUND {round || 12}/24
                 </div>
                 <h3
                   className="font-display font-black text-[#F0F0EC] uppercase"
@@ -113,17 +117,16 @@ export function StandingsDrawer({
 
             {/* Column header */}
             <div
-              className="px-8 py-3 grid gap-4"
+              className="px-8 py-3 grid gap-4 items-center text-[8px] font-mono tracking-[0.25em] text-[#666666] uppercase"
               style={{
-                gridTemplateColumns: isDriver ? "40px 1fr 120px 60px" : "40px 1fr 120px 60px",
+                gridTemplateColumns: "40px 1fr 120px 60px",
                 borderBottom: "1px solid rgba(255,255,255,0.04)",
               }}
             >
-              {["POS", isDriver ? "DRIVER" : "TEAM", isDriver ? "WINS / POD" : "LINEUP", "PTS"].map((col) => (
-                <div key={col} className="font-mono text-[8px] tracking-[0.2em] text-[#555555] uppercase">
-                  {col}
-                </div>
-              ))}
+              <div>POS</div>
+              <div>{isDriver ? "DRIVER" : "CONSTRUCTOR"}</div>
+              <div>{isDriver ? "RECORD" : "LINEUP"}</div>
+              <div className="text-right">PTS</div>
             </div>
 
             {/* Classification list */}
@@ -168,14 +171,14 @@ export function StandingsDrawer({
                             </div>
                           </div>
                           <div className="font-mono text-[8px] tracking-[0.15em] text-[#666666] uppercase mt-0.5 pl-6">
-                            {d.team_name} &nbsp;·&nbsp; #{d.driver_number}
+                            {d.team_name} &nbsp;·&nbsp; #{d.driver_number || "--"}
                           </div>
                         </div>
 
                         {/* Wins / Podiums */}
                         <div>
                           <div className="font-mono text-[10px] text-[#F0F0EC]">
-                            {d.wins}W &nbsp;·&nbsp; {d.podiums}P
+                            {d.wins}W{d.podiums !== undefined ? ` · ${d.podiums}P` : ""}
                           </div>
                         </div>
 
@@ -230,7 +233,9 @@ export function StandingsDrawer({
 
                         {/* Lineup */}
                         <div className="font-mono text-[10px] text-[#666666] uppercase tracking-wider">
-                          {c.driver_codes.join(" · ")}
+                          {c.driver_codes && c.driver_codes.length > 0
+                            ? c.driver_codes.join(" · ")
+                            : "--"}
                         </div>
 
                         {/* Points */}

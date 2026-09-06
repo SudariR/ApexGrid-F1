@@ -10,7 +10,7 @@ import { ConstructorLogo } from "@/components/ui/ConstructorLogo";
 import { StandingsDrawer } from "@/components/ui/StandingsDrawer";
 
 export function ConstructorsStandings() {
-  const { constructors } = useConstructorStandings();
+  const { constructors, round, season, isLive } = useConstructorStandings();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -64,7 +64,7 @@ export function ConstructorsStandings() {
             WebkitTextStroke: "2px rgba(13,13,15,0.14)",
           }}
         >
-          CONSTRUCTORS • FIA 2026 • CONSTRUCTORS • FIA 2026 • CONSTRUCTORS • FIA 2026 • CONSTRUCTORS • FIA 2026 •
+          CONSTRUCTORS • FIA {season || 2026} • CONSTRUCTORS • FIA {season || 2026} • CONSTRUCTORS • FIA {season || 2026} •
         </div>
       </div>
 
@@ -90,11 +90,19 @@ export function ConstructorsStandings() {
           </div>
           <div className="flex items-center gap-6 mt-4">
             <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
-              10 TEAMS
+              {constructors.length} TEAMS
             </div>
             <div className="w-12 h-[1px] bg-ink-faint" />
             <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
-              SEASON 2026
+              SEASON {season || 2026}
+            </div>
+            <div className="w-12 h-[1px] bg-ink-faint" />
+            <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
+              ROUND {round || 12} / 24
+            </div>
+            <div className={`w-2 h-2 rounded-full ${isLive ? "bg-accent animate-pulse" : "bg-ink-light"}`} />
+            <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
+              {isLive ? "FIA VERIFIED LIVE" : "FIA ARCHIVE"}
             </div>
           </div>
         </div>
@@ -250,6 +258,8 @@ export function ConstructorsStandings() {
         onClose={() => setDrawerOpen(false)}
         type="constructors"
         constructors={constructors}
+        season={season}
+        round={round}
       />
     </section>
   );

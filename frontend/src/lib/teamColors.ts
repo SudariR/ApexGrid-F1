@@ -81,6 +81,22 @@ export const F1_TEAMS: Record<string, TeamColorInfo> = {
     border: "rgba(182, 186, 189, 0.6)",
     text: "#D0D3D6",
   },
+  "Audi": {
+    name: "Audi",
+    primary: "#F01515",
+    secondary: "#000000",
+    glow: "rgba(240, 21, 21, 0.4)",
+    border: "rgba(240, 21, 21, 0.6)",
+    text: "#FF3333",
+  },
+  "Cadillac": {
+    name: "Cadillac",
+    primary: "#D4AF37",
+    secondary: "#1E3A8A",
+    glow: "rgba(212, 175, 55, 0.4)",
+    border: "rgba(212, 175, 55, 0.6)",
+    text: "#E5C158",
+  },
 };
 
 export const DEFAULT_TEAM_COLOR: TeamColorInfo = {
