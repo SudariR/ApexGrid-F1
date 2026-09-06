@@ -297,3 +297,34 @@ class PredictResponse(BaseModel):
     constructors: list[WinProbability] = Field(
         ..., description="Constructors' championship win probabilities (descending)."
     )
+# --- Teammate qualifying head-to-head + Elo --------------------------------
+
+
+class DuelDriver(BaseModel):
+    """One driver involved in a teammate qualifying duel."""
+
+    code: str = Field(..., description="3-letter driver code.")
+    name: str = Field(..., description="Full driver name.")
+
+
+class TeammateDuel(BaseModel):
+    """Qualifying head-to-head between two teammates over a season."""
+
+    constructor_name: str = Field(..., description="Team the pair drives for.")
+    driver_a: DuelDriver = Field(...)
+    driver_b: DuelDriver = Field(...)
+    wins_a: int = Field(..., description="Times driver A out-qualified driver B.")
+    wins_b: int = Field(..., description="Times driver B out-qualified driver A.")
+    races: int = Field(..., description="Qualifying sessions both shared.")
+    elo_a: float = Field(..., description="Driver A's Elo rating.")
+    elo_b: float = Field(..., description="Driver B's Elo rating.")
+
+
+class HeadToHeadResponse(BaseModel):
+    """Teammate qualifying head-to-head ratings for a season."""
+
+    season: int = Field(..., description="Season year.")
+    as_of_round: int = Field(..., description="Latest round the data reflects.")
+    duels: list[TeammateDuel] = Field(
+        ..., description="One entry per teammate pairing that raced together."
+    )

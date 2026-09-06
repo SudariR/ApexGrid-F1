@@ -11,6 +11,7 @@ from app.services import (
     standings_service,
     telemetry_service,
     predictor_service,
+    headtohead_service,
 )
 
 
@@ -293,6 +294,39 @@ class TestPredictorEndpoint:
     def test_bad_n_simulations_rejected(self, client):
         r = client.post("/api/v1/predictor/simulate", json={"n_simulations": 5})
         assert r.status_code == 422  # below our min of 100
+
+# --- head-to-head ----------------------------------------------------------
+
+
+class TestHeadToHeadEndpoint:
+    def test_returns_valid_schema(self, client, monkeypatch):
+        def fake_payload(season=None):
+            return {
+                "season": 2026, "as_of_round": 13,
+                "duels": [{
+                    "constructor_name": "Red Bull",
+                    "driver_a": {"code": "VER", "name": "Max Verstappen"},
+                    "driver_b": {"code": "HAD", "name": "Isack Hadjar"},
+                    "wins_a": 8, "wins_b": 2, "races": 10,
+                    "elo_a": 1054.0, "elo_b": 960.0,
+                }],
+            }
+        monkeypatch.setattr(headtohead_service, "get_headtohead_payload", fake_payload)
+        r = client.get("/api/v1/headtohead/teammates?season=2026")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["duels"][0]["driver_a"]["code"] == "VER"
+        assert body["duels"][0]["elo_a"] == 1054.0
+
+    def test_upstream_error_returns_503(self, client, monkeypatch):
+        from app.services.errors import UpstreamDataUnavailableError
+
+        def boom(season=None):
+            raise UpstreamDataUnavailableError("data unavailable")
+
+        monkeypatch.setattr(headtohead_service, "get_headtohead_payload", boom)
+        r = client.get("/api/v1/headtohead/teammates")
+        assert r.status_code == 503
 
 
 

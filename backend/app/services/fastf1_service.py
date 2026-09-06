@@ -6,6 +6,7 @@ from typing import Any
 import fastf1
 from fastf1.core import Session
 from fastf1.ergast import Ergast
+from fastf1.ergast.interface import ErgastRawResponse
 
 from app.core.config import get_settings
 from app.services.errors import UpstreamDataUnavailableError
@@ -43,17 +44,37 @@ def _ergast() -> Ergast:
 
 def get_driver_standings_raw(season: int):
     """Return the raw DriverStandings list for a season (latest completed GP)."""
-    resp: Any = _ergast().get_driver_standings(season=season, result_type="raw")
+    resp = _ergast().get_driver_standings(season=season, result_type="raw")
+    if not isinstance(resp, ErgastRawResponse) or not resp:
+        raise UpstreamDataUnavailableError(f"Driver standings unavailable for season {season}")
     block = resp[0]  # single request -> one element
     return block["season"], block["round"], block["DriverStandings"]
 
 
 def get_constructor_standings_raw(season: int):
     """Return the raw ConstructorStandings list (latest completed GP)."""
-    resp: Any = _ergast().get_constructor_standings(season=season, result_type="raw")
+    resp = _ergast().get_constructor_standings(season=season, result_type="raw")
+    if not isinstance(resp, ErgastRawResponse) or not resp:
+        raise UpstreamDataUnavailableError(f"Constructor standings unavailable for season {season}")
     block = resp[0]
     return block["season"], block["round"], block["ConstructorStandings"]
+    
+def get_qualifying_raw(season: int, gp_round: int):
+    """Return the raw QualifyingResults list for one round, or [] if absent.
 
+    Ergast treats qualifying with a special 'round': if a session is missing
+    (e.g. sprint-qualifying weekend formats), the round may not have classic
+    qualifying data, so we return an empty list rather than erroring.
+    """
+    try:
+        resp = _ergast().get_qualifying_results(season=season, round=gp_round, result_type="raw")
+        if not isinstance(resp, ErgastRawResponse) or not resp:
+            return []
+        block = resp[0]
+        return block.get("QualifyingResults", [])
+    except Exception as exc:  # round has no qualifying data -> treat as none
+        logger.warning("No qualifying data for %s round %s: %s", season, gp_round, exc)
+        return []
 
 # --- Schedule helpers ------------------------------------------------------
 
