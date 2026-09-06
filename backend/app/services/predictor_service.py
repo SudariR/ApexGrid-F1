@@ -35,7 +35,7 @@ def _compute_remaining_races(season: int, as_of_round: int) -> int:
     schedule = ff.get_schedule(season)
     if schedule is None or schedule.empty:
         return 0
-    return int((schedule["RoundNumber"] > as_of_round).sum())
+    return (schedule["RoundNumber"] > as_of_round).sum()
 
 
 def _load_drivers(season: int):
