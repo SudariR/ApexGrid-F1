@@ -328,6 +328,50 @@ class TestHeadToHeadEndpoint:
         r = client.get("/api/v1/headtohead/teammates")
         assert r.status_code == 503
 
+# --- response caching ------------------------------------------------------
+
+
+class TestResponseCaching:
+    def test_hero_second_call_is_cache_hit(self, client, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_payload(season=None, gp_round=None):
+            calls["n"] += 1
+            driver = {
+                "position": 1, "driver_code": "NOR", "full_name": "Lando Norris",
+                "team_name": "McLaren",
+            }
+            return {
+                "season": 2026, "round": 12, "event_name": "Dutch Grand Prix",
+                "country": "Netherlands", "location": "Zandvoort",
+                "race_date": "2026-08-23", "total_laps": 72,
+                "winner": driver, "podium": [driver],
+            }
+
+        monkeypatch.setattr(race_service, "get_hero_payload", fake_payload)
+        r1 = client.get("/api/v1/hero/latest?season=2026")
+        r2 = client.get("/api/v1/hero/latest?season=2026")
+        assert r1.headers.get("X-Cache") == "MISS"
+        assert r2.headers.get("X-Cache") == "HIT"
+        assert calls["n"] == 1  # service ran only once
+
+    def test_refresh_bypasses_cache(self, client, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_payload(season=None, gp_round=None):
+            calls["n"] += 1
+            driver = {"position": 1, "driver_code": "NOR",
+                      "full_name": "Lando Norris", "team_name": "McLaren"}
+            return {"season": 2026, "round": 12, "event_name": "GP",
+                    "country": "X", "location": "Y", "race_date": "2026-08-23",
+                    "total_laps": 1, "winner": driver, "podium": [driver]}
+
+        monkeypatch.setattr(race_service, "get_hero_payload", fake_payload)
+        client.get("/api/v1/hero/latest?season=2026")
+        r2 = client.get("/api/v1/hero/latest?season=2026&refresh=true")
+        assert r2.headers.get("X-Cache") == "MISS"
+        assert calls["n"] == 2
+
 
 
 
