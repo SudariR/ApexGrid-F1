@@ -198,3 +198,102 @@ class TireDegradationResponse(BaseModel):
     stints: list[TireStint] = Field(
         ..., description="Degradation fit per stint, ordered by compound+stint."
     )
+
+
+class ScheduleWinner(BaseModel):
+    """Winner details for a completed Grand Prix."""
+
+    driver_code: str = Field(..., description="3-letter driver code, e.g. 'RUS'.")
+    full_name: str = Field(..., description="Full driver name, e.g. 'George Russell'.")
+    team_name: str = Field(..., description="Team/constructor name, e.g. 'Mercedes'.")
+    finish_gap: str | None = Field(default=None, description="Finish race time or gap.")
+
+
+class ScheduleEvent(BaseModel):
+    """A single Grand Prix event in the season calendar."""
+
+    round: int = Field(..., description="Grand Prix round number (1-24).")
+    event_name: str = Field(..., description="Official name, e.g. 'Australian Grand Prix'.")
+    country: str = Field(..., description="Host country, e.g. 'Australia'.")
+    location: str = Field(..., description="Location/circuit town, e.g. 'Melbourne'.")
+    race_date: str = Field(..., description="ISO race date, e.g. '2026-03-08'.")
+    status: str = Field(..., description="'completed', 'current', or 'upcoming'.")
+    event_format: str | None = Field(default="conventional", description="conventional or sprint")
+    winner: ScheduleWinner | None = Field(default=None, description="Winner for completed races.")
+
+
+class ScheduleResponse(BaseModel):
+    """Payload for the full season race calendar / timeline."""
+
+    season: int = Field(..., description="Season year.")
+    total_rounds: int = Field(..., description="Total rounds in the season.")
+    current_round: int | None = Field(default=None, description="Current or upcoming round number.")
+    events: list[ScheduleEvent] = Field(..., description="Ordered list of Grand Prix events.")
+
+# --- Monte Carlo championship predictor ------------------------------------
+
+
+class DriverScenario(BaseModel):
+    """A What-If override for a single driver in a prediction."""
+
+    code: str = Field(..., description="3-letter driver code, e.g. 'VER'.")
+    rating: float | None = Field(
+        None, description="Optional override of the driver's pace rating."
+    )
+    dnf_probability: float | None = Field(
+        None, ge=0.0, le=1.0,
+        description="Optional per-race DNF probability override (0..1).",
+    )
+
+
+class PredictRequest(BaseModel):
+    """Request body for a championship prediction / What-If scenario."""
+
+    season: int | None = Field(
+        default=None, ge=1950, le=2100,
+        description="Season year. Defaults to current.",
+    )
+    n_simulations: int = Field(
+        default=10000, ge=100, le=500000,
+        description="Number of Monte Carlo runs. Default 10,000.",
+    )
+    seed: int | None = Field(
+        default=None,
+        description="Optional RNG seed for reproducible results.",
+    )
+    remaining_races: int | None = Field(
+        default=None, ge=0,
+        description="Override number of remaining races. Defaults to the real "
+        "remaining count based on current standings.",
+    )
+    overrides: list[DriverScenario] = Field(
+        default_factory=list,
+        description="What-If scenario overrides (e.g. raise a driver's DNF odds).",
+    )
+
+
+class WinProbability(BaseModel):
+    """Win probability for one entity (driver or constructor)."""
+
+    code: str = Field(..., description="3-letter driver code or constructor code.")
+    name: str | None = Field(None, description="Human-readable name, if available.")
+    win_probability: float = Field(
+        ..., description="Championship win probability (0..1)."
+    )
+
+
+class PredictResponse(BaseModel):
+    """Result of a championship Monte Carlo prediction."""
+
+    season: int = Field(..., description="Season year.")
+    as_of_round: int = Field(
+        ..., description="Round the current standings were taken from."
+    )
+    remaining_races: int = Field(..., description="Races simulated ahead.")
+    n_simulations: int = Field(..., description="Monte Carlo runs performed.")
+    drivers: list[WinProbability] = Field(
+        ..., description="Drivers' championship win probabilities (descending)."
+    )
+    constructors: list[WinProbability] = Field(
+        ..., description="Constructors' championship win probabilities (descending)."
+    )

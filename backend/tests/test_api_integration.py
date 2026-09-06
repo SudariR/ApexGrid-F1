@@ -1,4 +1,5 @@
 """HTTP integration tests.
+
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -9,6 +10,7 @@ from app.services import (
     race_service,
     standings_service,
     telemetry_service,
+    predictor_service,
 )
 
 
@@ -233,6 +235,66 @@ class TestAnalyticsEndpoints:
         monkeypatch.setattr(analytics_service, "get_pace_payload", boom)
         r = client.get("/api/v1/analytics/pace?driver=NOR&round=12")
         assert r.status_code == 503
+
+    
+# --- telemetry round required ----------------------------------------------
+
+
+class TestTelemetryRoundRequired:
+    def test_round_is_required(self, client):
+        r = client.get(
+            "/api/v1/telemetry/compare?driver_a=NOR&driver_b=RUS&session=Q"
+        )
+        assert r.status_code == 422
+
+
+# --- predictor -------------------------------------------------------------
+
+
+class TestPredictorEndpoint:
+    def test_simulate_returns_valid_schema(self, client, monkeypatch):
+        def fake_predict(**kwargs):
+            return {
+                "season": 2026, "as_of_round": 13, "remaining_races": 10,
+                "n_simulations": 1000,
+                "drivers": [{"code": "ANT", "name": "Andrea Kimi Antonelli",
+                             "win_probability": 0.98}],
+                "constructors": [{"code": "MER", "name": "Mercedes",
+                                  "win_probability": 0.99}],
+            }
+        monkeypatch.setattr(predictor_service, "get_predict_payload", fake_predict)
+        r = client.post("/api/v1/predictor/simulate", json={})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["remaining_races"] == 10
+        assert body["drivers"][0]["win_probability"] == 0.98
+
+    def test_overrides_accepted(self, client, monkeypatch):
+        captured = {}
+
+        def fake_predict(**kwargs):
+            captured.update(kwargs)
+            return {
+                "season": 2026, "as_of_round": 13, "remaining_races": 10,
+                "n_simulations": 100,
+                "drivers": [], "constructors": [],
+            }
+        monkeypatch.setattr(predictor_service, "get_predict_payload", fake_predict)
+        payload = {"season": 2026, "n_simulations": 500,
+                   "overrides": [{"code": "ANT", "dnf_probability": 0.3}]}
+        r = client.post("/api/v1/predictor/simulate", json=payload)
+        assert r.status_code == 200
+        # Verify the override reached the service as Pydantic objects.
+        ov = captured["overrides"]
+        assert len(ov) == 1
+        assert ov[0].code == "ANT"
+        assert abs(ov[0].dnf_probability - 0.3) < 1e-9
+
+    def test_bad_n_simulations_rejected(self, client):
+        r = client.post("/api/v1/predictor/simulate", json={"n_simulations": 5})
+        assert r.status_code == 422  # below our min of 100
+
+
 
 
 # --- versioning / routing --------------------------------------------------
