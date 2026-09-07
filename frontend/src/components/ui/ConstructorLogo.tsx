@@ -33,6 +33,10 @@ const TEAM_LOGO_MAP: Record<string, string> = {
   "haas": "/assets/team-logo/haas.png",
   "haas f1 team": "/assets/team-logo/haas.png",
   "audi": "/assets/team-logo/audi.png",
+  "cadillac": "/assets/team-logo/cadillac.png",
+  "cadillac f1": "/assets/team-logo/cadillac.png",
+  "cadillac f1 team": "/assets/team-logo/cadillac.png",
+  "cadillac racing": "/assets/team-logo/cadillac.png",
 };
 
 export function ConstructorLogo({
@@ -52,7 +56,7 @@ export function ConstructorLogo({
 
   if (logoPath && !imgError) {
     // Determine aspect ratio scaling based on team logo shape
-    const isWide = normalized.includes("aston") || normalized.includes("red bull") || normalized.includes("audi") || normalized.includes("alpine");
+    const isWide = normalized.includes("aston") || normalized.includes("red bull") || normalized.includes("audi") || normalized.includes("alpine") || normalized.includes("cadillac");
     const isSquareOrRound = normalized.includes("mercedes") || normalized.includes("haas") || normalized.includes("williams") || normalized.includes("kick") || normalized.includes("rb") || normalized.includes("racing");
     const isFerrari = normalized.includes("ferrari");
 

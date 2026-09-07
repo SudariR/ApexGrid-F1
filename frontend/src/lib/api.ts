@@ -218,3 +218,77 @@ export async function fetchSchedule(
   }
 }
 
+// ──────────────────────────────────────────────────────────────────
+// ANALYTICS ENDPOINTS
+// ──────────────────────────────────────────────────────────────────
+import type {
+  PaceResponse,
+  TireDegradationResponse,
+  HeadToHeadResponse,
+  PredictRequest,
+  PredictResponse,
+} from "@/types/analytics";
+
+export async function fetchPaceAnalytics(
+  driver: string,
+  round: number,
+  season?: number,
+  session: string = "R"
+): Promise<PaceResponse> {
+  const params = new URLSearchParams({ driver, round: String(round), session });
+  if (season) params.set("season", String(season));
+  const res = await fetch(`${API_BASE_URL}/analytics/pace?${params}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({ detail: "Pace analytics unavailable." }));
+    throw new Error((detail as { detail?: string })?.detail ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchTireDegradation(
+  driver: string,
+  round: number,
+  season?: number,
+  session: string = "R"
+): Promise<TireDegradationResponse> {
+  const params = new URLSearchParams({ driver, round: String(round), session });
+  if (season) params.set("season", String(season));
+  const res = await fetch(`${API_BASE_URL}/analytics/tire-degradation?${params}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({ detail: "Tire degradation unavailable." }));
+    throw new Error((detail as { detail?: string })?.detail ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchTeammateDuels(season?: number): Promise<HeadToHeadResponse> {
+  const params = new URLSearchParams();
+  if (season) params.set("season", String(season));
+  const query = params.toString() ? `?${params}` : "";
+  const res = await fetch(`${API_BASE_URL}/headtohead/teammates${query}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({ detail: "Head-to-head data unavailable." }));
+    throw new Error((detail as { detail?: string })?.detail ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function runSimulation(request: PredictRequest): Promise<PredictResponse> {
+  const res = await fetch(`${API_BASE_URL}/predictor/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({ detail: "Simulation failed." }));
+    throw new Error((detail as { detail?: string })?.detail ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}
