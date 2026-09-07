@@ -81,7 +81,7 @@ export function HeroSection() {
       id="hero"
       ref={heroRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full min-h-screen overflow-hidden bg-bg"
+      className="relative w-full min-h-[100dvh] md:min-h-screen overflow-hidden bg-bg"
       style={{ cursor: "default" }}
     >
       {/* ── LAYER 0: Engineering background grid ── */}
@@ -100,7 +100,7 @@ export function HeroSection() {
         <TrackMap
           circuitName={hero.location || hero.event_name || "Zandvoort"}
           round={hero.round}
-          className="absolute top-[20%] right-[-10%] w-[58%] h-[82%] max-w-none"
+          className="absolute top-[18%] sm:top-[20%] right-[-15%] sm:right-[-10%] w-[75%] sm:w-[58%] h-[60%] sm:h-[82%] max-w-none opacity-50 md:opacity-85"
           opacity={0.85}
         />
       </div>
@@ -111,7 +111,7 @@ export function HeroSection() {
           key={`watermark-${winner?.driver_code}`}
           className="font-display font-black uppercase leading-none select-none transition-all duration-500"
           style={{
-            fontSize: "clamp(5rem, 17vw, 18rem)",
+            fontSize: "clamp(4rem, 17vw, 18rem)",
             letterSpacing: "-0.04em",
             color: "transparent",
             WebkitTextStroke: "2px rgba(13,13,15,0.13)",
@@ -129,14 +129,10 @@ export function HeroSection() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        className="absolute z-[4] pointer-events-none"
+        className="absolute z-[4] pointer-events-none w-[52vw] sm:w-[45vw] md:w-[clamp(280px,38vw,600px)] h-[55vh] sm:h-[65vh] md:h-full bottom-0 left-0"
         style={{
           x: springX,
           y: springY,
-          left: "0%",
-          bottom: "0",
-          width: "clamp(280px, 38vw, 600px)",
-          height: "100%",
         }}
       >
         {/* Team color accent strip at left edge */}
@@ -172,15 +168,10 @@ export function HeroSection() {
 
       {/* ── LAYER 5: Typography — dynamic driver & round stats ── */}
       <div
-        className="absolute z-[6] pointer-events-none select-none"
-        style={{
-          left: "clamp(240px, 32vw, 500px)",
-          top: "23%",
-          transform: "translateY(-50%)",
-        }}
+        className="absolute z-[6] pointer-events-none select-none left-5 sm:left-8 md:left-[clamp(240px,32vw,500px)] top-[25%] sm:top-[24%] md:top-[23%] -translate-y-1/2 max-w-[calc(100vw-2.5rem)]"
       >
         {/* Race round micro label */}
-        <div className="font-mono text-[9px] tracking-[0.22em] text-ink-light uppercase mb-2.5">
+        <div className="font-mono text-[8px] sm:text-[9px] tracking-[0.22em] text-ink-light uppercase mb-1.5 sm:mb-2.5">
           RD {hero.round} / 24 &nbsp;·&nbsp; {hero.season} SEASON
         </div>
 
@@ -190,8 +181,8 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display font-black text-ink leading-none uppercase whitespace-nowrap"
-          style={{ fontSize: "clamp(1.8rem, 3.8vw, 4.6rem)", letterSpacing: "-0.025em" }}
+          className="font-display font-black text-ink leading-none uppercase whitespace-nowrap text-3xl sm:text-4xl md:text-[clamp(1.8rem,3.8vw,4.6rem)]"
+          style={{ letterSpacing: "-0.025em" }}
         >
           {winner?.full_name}
         </motion.div>
@@ -201,20 +192,20 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-3.5 flex items-center gap-3"
+          className="mt-2.5 sm:mt-3.5 flex items-center gap-2 sm:gap-3"
         >
           <div
-            className="w-7 h-[2px] transition-colors duration-500"
+            className="w-5 sm:w-7 h-[2px] transition-colors duration-500"
             style={{ backgroundColor: teamColors.primary }}
           />
-          <span className="font-display font-bold text-xs tracking-[0.15em] uppercase text-ink-mid">
+          <span className="font-display font-bold text-[10px] sm:text-xs tracking-[0.15em] uppercase text-ink-mid">
             {winner?.team_name}
           </span>
           <div
-            className="w-3 h-[2px] transition-colors duration-500"
+            className="w-2.5 sm:w-3 h-[2px] transition-colors duration-500"
             style={{ backgroundColor: teamColors.primary }}
           />
-          <span className="font-mono text-xs text-ink-light">
+          <span className="font-mono text-[10px] sm:text-xs text-ink-light">
             P{winner?.position || 1} WINNER
           </span>
         </motion.div>
@@ -222,13 +213,7 @@ export function HeroSection() {
 
       {/* ── LAYER 6: Race-winning car — dynamic constructor livery & spatial annotations ── */}
       <div
-        className="absolute z-[5] pointer-events-none"
-        style={{
-          right: "0",
-          bottom: "0",
-          width: "clamp(420px, 58vw, 900px)",
-          height: "68vh",
-        }}
+        className="absolute z-[5] pointer-events-none w-[88vw] sm:w-[75vw] md:w-[clamp(420px,58vw,900px)] h-[38vh] sm:h-[48vh] md:h-[68vh] right-0 bottom-1 sm:bottom-0"
       >
         {/* Car spatial annotation system — real finish time, laps, points, and position */}
         <CarSpatialAnnotation
@@ -279,28 +264,28 @@ export function HeroSection() {
       </div>
 
       {/* ── LAYER 7: Top HUD bar — latest race, live indicator & next race ── */}
-      <div className="absolute top-0 left-0 right-0 z-[7] pt-20 px-6 md:px-10 flex items-center justify-between pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-[7] pt-16 sm:pt-20 px-4 sm:px-6 md:px-10 flex items-center justify-between pointer-events-none">
         {/* Left: Latest Race & Circuit — Click to smoothly scroll to Timeline */}
         <div
           onClick={() => scrollTo("#timeline-current")}
-          className="flex items-center gap-6 pointer-events-auto cursor-pointer group"
+          className="flex items-center gap-2 sm:gap-4 md:gap-6 pointer-events-auto cursor-pointer group whitespace-nowrap"
           title="Click to view Season Timeline"
         >
           <div>
-            <div className="font-mono text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors flex items-center gap-1.5">
+            <div className="font-mono text-[7px] sm:text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors flex items-center gap-1">
               <span>LATEST RACE</span>
               <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent">↓</span>
             </div>
-            <div className="font-display font-bold text-sm text-ink group-hover:text-ink/80 uppercase tracking-tight mt-0.5 transition-colors">
+            <div className="font-display font-bold text-xs sm:text-sm text-ink group-hover:text-ink/80 uppercase tracking-tight mt-0.5 transition-colors whitespace-nowrap">
               {hero.event_name}
             </div>
           </div>
-          <div className="w-[1px] h-8 bg-ink-faint group-hover:bg-accent/40 transition-colors" />
-          <div>
-            <div className="font-mono text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors">
+          <div className="hidden sm:block w-[1px] h-6 sm:h-8 bg-ink-faint group-hover:bg-accent/40 transition-colors" />
+          <div className="hidden sm:block">
+            <div className="font-mono text-[7px] sm:text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors">
               CIRCUIT
             </div>
-            <div className="font-mono text-xs text-ink-mid group-hover:text-ink mt-0.5 uppercase tracking-wide transition-colors">
+            <div className="font-mono text-[10px] sm:text-xs text-ink-mid group-hover:text-ink mt-0.5 uppercase tracking-wide transition-colors whitespace-nowrap">
               {hero.location}{hero.country ? `, ${hero.country}` : ""}
             </div>
           </div>
@@ -321,24 +306,24 @@ export function HeroSection() {
         {/* Right: Next Race & Race Day — Dynamically computed from 2026 calendar */}
         <div
           onClick={() => scrollTo("#timeline")}
-          className="flex items-center gap-6 text-right pointer-events-auto cursor-pointer group"
+          className="flex items-center gap-2 sm:gap-4 md:gap-6 text-right pointer-events-auto cursor-pointer group whitespace-nowrap"
           title="Click to view Season Timeline"
         >
           <div>
-            <div className="font-mono text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors flex items-center justify-end gap-1.5">
+            <div className="font-mono text-[7px] sm:text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors flex items-center justify-end gap-1">
               <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent">↓</span>
               <span>NEXT RACE</span>
             </div>
-            <div className="font-display font-bold text-sm text-ink group-hover:text-ink/80 uppercase tracking-tight mt-0.5 transition-colors">
+            <div className="font-display font-bold text-xs sm:text-sm text-ink group-hover:text-ink/80 uppercase tracking-tight mt-0.5 transition-colors whitespace-nowrap">
               {nextRace?.event_name || "Next Grand Prix"}
             </div>
           </div>
-          <div className="w-[1px] h-8 bg-ink-faint group-hover:bg-accent/40 transition-colors" />
-          <div>
-            <div className="font-mono text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors">
+          <div className="hidden sm:block w-[1px] h-6 sm:h-8 bg-ink-faint group-hover:bg-accent/40 transition-colors" />
+          <div className="hidden sm:block">
+            <div className="font-mono text-[7px] sm:text-[8px] tracking-[0.25em] text-ink-light uppercase group-hover:text-accent transition-colors">
               RACE DAY
             </div>
-            <div className="font-mono text-xs text-ink-mid group-hover:text-ink mt-0.5 uppercase tracking-wide transition-colors">
+            <div className="font-mono text-[10px] sm:text-xs text-ink-mid group-hover:text-ink mt-0.5 uppercase tracking-wide transition-colors whitespace-nowrap">
               {formattedNextRaceDate}
             </div>
           </div>
@@ -346,18 +331,18 @@ export function HeroSection() {
       </div>
 
       {/* ── LAYER 8: Scroll indicator ── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[8] flex flex-col items-center gap-2 pointer-events-none">
-        <div className="w-[1px] h-14 bg-ink-faint scroll-line" />
-        <div className="font-mono text-[8px] tracking-[0.3em] text-ink-light uppercase">
+      <div className="absolute bottom-5 sm:bottom-8 left-1/2 -translate-x-1/2 z-[8] flex flex-col items-center gap-1.5 sm:gap-2 pointer-events-none">
+        <div className="w-[1px] h-10 sm:h-14 bg-ink-faint scroll-line" />
+        <div className="font-mono text-[7px] sm:text-[8px] tracking-[0.3em] text-ink-light uppercase">
           SCROLL
         </div>
       </div>
 
       {/* ── LAYER 9: Clickable overlay for sections ── */}
-      <div className="absolute bottom-8 right-6 md:right-10 z-[9] flex items-center gap-4">
+      <div className="absolute bottom-5 sm:bottom-8 right-4 sm:right-6 md:right-10 z-[10] flex items-center gap-4">
         <button
           onClick={() => scrollTo("#drivers")}
-          className="font-display font-bold text-[10px] tracking-[0.2em] uppercase text-ink-light hover:text-ink transition-colors duration-200 flex items-center gap-2"
+          className="font-display font-bold text-[9px] sm:text-[10px] tracking-[0.2em] uppercase text-ink-light hover:text-ink transition-colors duration-200 flex items-center gap-1.5 sm:gap-2"
         >
           <span>DRIVERS</span>
           <span className="text-accent">↓</span>

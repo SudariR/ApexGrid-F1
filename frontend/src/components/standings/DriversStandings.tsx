@@ -56,7 +56,7 @@ export function DriversStandings() {
           ref={marqueeRef}
           className="whitespace-nowrap select-none will-change-transform"
           style={{
-            fontSize: "clamp(7rem, 16vw, 18rem)",
+            fontSize: "clamp(6rem, 16vw, 18rem)",
             fontFamily: "Orbitron, sans-serif",
             fontWeight: 900,
             letterSpacing: "-0.04em",
@@ -91,35 +91,35 @@ export function DriversStandings() {
       </div>
 
       {/* ── Main content ── */}
-      <div className="relative z-[2] w-full min-h-screen flex flex-col justify-center px-6 md:px-10 lg:px-16 py-24">
+      <div className="relative z-[2] w-full min-h-screen flex flex-col justify-center px-4 sm:px-6 md:px-10 lg:px-16 py-16 sm:py-20 md:py-24">
 
         {/* Section header — left-aligned, not centered */}
-        <div className="mb-10 md:mb-14">
-          <div className="section-index mb-3">
+        <div className="mb-8 sm:mb-10 md:mb-14">
+          <div className="section-index mb-2 sm:mb-3">
             02 &nbsp;/&nbsp; WORLD DRIVERS&apos; CHAMPIONSHIP
           </div>
           <div
             className="font-display font-black text-ink uppercase leading-none"
-            style={{ fontSize: "clamp(2.5rem, 6vw, 7rem)", letterSpacing: "-0.03em" }}
+            style={{ fontSize: "clamp(2.2rem, 6vw, 7rem)", letterSpacing: "-0.03em" }}
           >
             DRIVERS&apos;
           </div>
           <div
             className="font-display font-black text-ink uppercase leading-none"
-            style={{ fontSize: "clamp(2.5rem, 6vw, 7rem)", letterSpacing: "-0.03em" }}
+            style={{ fontSize: "clamp(2.2rem, 6vw, 7rem)", letterSpacing: "-0.03em" }}
           >
             CHAMPIONSHIP
           </div>
-          <div className="flex items-center gap-6 mt-4">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-3 sm:mt-4">
+            <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] text-ink-light uppercase">
               SEASON {season || 2026}
             </div>
-            <div className="w-12 h-[1px] bg-ink-faint" />
-            <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
+            <div className="w-8 sm:w-12 h-[1px] bg-ink-faint" />
+            <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] text-ink-light uppercase">
               ROUND {round || 12} / 24
             </div>
-            <div className={`w-2 h-2 rounded-full ${isLive ? "bg-accent animate-pulse" : "bg-ink-light"}`} />
-            <div className="font-mono text-[10px] tracking-[0.2em] text-ink-light uppercase">
+            <div className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full ${isLive ? "bg-accent animate-pulse" : "bg-ink-light"}`} />
+            <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] text-ink-light uppercase">
               {isLive ? "FIA VERIFIED LIVE" : "FIA ARCHIVE"}
             </div>
           </div>
@@ -154,7 +154,7 @@ export function DriversStandings() {
                   transition={{ duration: 0.45, delay: index * 0.05 }}
                   onHoverStart={() => setHoveredDriver(driver.driver_code)}
                   onHoverEnd={() => setHoveredDriver(null)}
-                  className="classification-row py-4 md:py-5 px-2 cursor-default"
+                  className="classification-row py-3.5 sm:py-4 md:py-5 px-1 sm:px-2 cursor-default"
                 >
                   {/* Team color hover accent — 2px left border */}
                   <div
@@ -167,34 +167,35 @@ export function DriversStandings() {
                   />
 
                   {/* Mobile layout */}
-                  <div className="md:hidden flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="md:hidden flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
                       <span
-                        className="font-display font-black text-ink-light"
-                        style={{ fontSize: "1rem", letterSpacing: "-0.02em" }}
+                        className="font-display font-black text-ink-light text-sm sm:text-base flex-shrink-0"
+                        style={{ letterSpacing: "-0.02em", color: isP1 ? team.primary : undefined }}
                       >
                         P{driver.position}
                       </span>
-                      <div>
+                      <ConstructorLogo teamName={driver.team_name} size={18} />
+                      <div className="min-w-0">
                         <div
-                          className="font-display font-black text-ink uppercase"
-                          style={{ fontSize: "1.2rem", letterSpacing: "-0.02em" }}
+                          className="font-display font-black text-ink uppercase text-sm sm:text-base truncate"
+                          style={{ letterSpacing: "-0.02em" }}
                         >
                           {driver.full_name}
                         </div>
-                        <div className="font-mono text-[9px] tracking-widest text-ink-light uppercase mt-0.5">
-                          {driver.team_name} &nbsp;·&nbsp; #{driver.driver_number}
+                        <div className="font-mono text-[8px] sm:text-[9px] tracking-wider text-ink-light uppercase mt-0.5 truncate">
+                          {driver.team_name} &nbsp;·&nbsp; #{driver.driver_number} &nbsp;·&nbsp; {driver.wins}W
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <div
-                        className="font-display font-black text-ink"
-                        style={{ fontSize: "1.4rem", letterSpacing: "-0.02em" }}
+                        className="font-display font-black text-ink text-lg sm:text-xl"
+                        style={{ letterSpacing: "-0.02em" }}
                       >
                         {driver.points}
                       </div>
-                      <div className="font-mono text-[8px] tracking-widest text-ink-light uppercase">PTS</div>
+                      <div className="font-mono text-[7.5px] sm:text-[8px] tracking-widest text-ink-light uppercase">PTS</div>
                     </div>
                   </div>
 
@@ -287,13 +288,13 @@ export function DriversStandings() {
         </div>
 
         {/* Bottom — View All link, no button box */}
-        <div className="mt-10 flex items-center justify-between">
-          <div className="font-mono text-[9px] tracking-[0.2em] text-ink-light uppercase">
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="font-mono text-[8px] sm:text-[9px] tracking-[0.2em] text-ink-light uppercase">
             SHOWING {displayDrivers.length} OF {drivers.length} DRIVERS
           </div>
           <button
             onClick={() => setDrawerOpen(true)}
-            className="group flex items-center gap-3 font-display font-bold text-xs tracking-[0.15em] uppercase text-ink hover:text-accent transition-colors duration-200"
+            className="group flex items-center gap-2 sm:gap-3 font-display font-bold text-xs tracking-[0.15em] uppercase text-ink hover:text-accent transition-colors duration-200"
           >
             <span>VIEW ALL CLASSIFICATIONS</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
