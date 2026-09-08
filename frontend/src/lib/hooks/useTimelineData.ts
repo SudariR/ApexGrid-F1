@@ -21,7 +21,8 @@ export function useTimelineData(season?: number) {
   const currentRound =
     data?.current_round ||
     backendEvents.find((e) => e.status === "current")?.round ||
-    13;
+    F1_2026_CALENDAR.find((e) => e.status === "current")?.round ||
+    14;
 
   // Merge backend schedule data into the rich local calendar (which contains SVG paths & coordinates)
   const events: RaceEvent[] = F1_2026_CALENDAR.map((calEvent) => {
@@ -34,13 +35,14 @@ export function useTimelineData(season?: number) {
         calEvent.location.toLowerCase().includes(be.location.toLowerCase())
     );
 
-    // Authoritative status based strictly on currentRound
+    // Authoritative status based on backendMatch or currentRound
     const status: "completed" | "current" | "upcoming" =
-      calEvent.round === currentRound
+      backendMatch?.status ||
+      (calEvent.round === currentRound
         ? "current"
         : calEvent.round < currentRound
         ? "completed"
-        : "upcoming";
+        : "upcoming");
 
     if (!backendMatch) {
       return {

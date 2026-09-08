@@ -2,45 +2,45 @@ import { HeroResponse, DriverStanding, ConstructorStanding } from "@/types/f1";
 
 export const MOCK_HERO_DATA: HeroResponse = {
   season: 2026,
-  round: 12,
-  event_name: "Dutch Grand Prix",
-  country: "Netherlands",
-  location: "Circuit Zandvoort",
-  race_date: "2026-08-23",
-  total_laps: 72,
+  round: 13,
+  event_name: "Italian Grand Prix",
+  country: "Italy",
+  location: "Autodromo Nazionale Monza",
+  race_date: "2026-09-06",
+  total_laps: 53,
   winner: {
     position: 1,
-    driver_code: "NOR",
-    full_name: "Lando Norris",
-    team_name: "McLaren",
-    driver_number: 4,
+    driver_code: "ANT",
+    full_name: "Kimi Antonelli",
+    team_name: "Mercedes",
+    driver_number: 12,
     grid_position: 1,
     status: "Finished",
-    points: 26,
-    finish_gap: "1:30:45.519"
+    points: 25,
+    finish_gap: "1:14:48.337"
   },
   podium: [
     {
       position: 1,
-      driver_code: "NOR",
-      full_name: "Lando Norris",
-      team_name: "McLaren",
-      driver_number: 4,
+      driver_code: "ANT",
+      full_name: "Kimi Antonelli",
+      team_name: "Mercedes",
+      driver_number: 12,
       grid_position: 1,
       status: "Finished",
-      points: 26,
-      finish_gap: "1:30:45.519"
+      points: 25,
+      finish_gap: "1:14:48.337"
     },
     {
       position: 2,
-      driver_code: "PIA",
-      full_name: "Oscar Piastri",
-      team_name: "McLaren",
-      driver_number: 81,
-      grid_position: 3,
+      driver_code: "RUS",
+      full_name: "George Russell",
+      team_name: "Mercedes",
+      driver_number: 63,
+      grid_position: 2,
       status: "Finished",
       points: 18,
-      finish_gap: "+0:04.281"
+      finish_gap: "+0:02.145"
     },
     {
       position: 3,
@@ -48,10 +48,10 @@ export const MOCK_HERO_DATA: HeroResponse = {
       full_name: "Max Verstappen",
       team_name: "Red Bull Racing",
       driver_number: 1,
-      grid_position: 2,
+      grid_position: 3,
       status: "Finished",
       points: 15,
-      finish_gap: "+0:18.730"
+      finish_gap: "+0:06.820"
     }
   ]
 };
