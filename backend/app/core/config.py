@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     # --- FastF1 on-disk cache (Step 2) ---
     fastf1_cache_dir: str = "cache"
 
+    # --- API response cache (in-memory, per-process) ---
+    response_cache_ttl_seconds: int = 300      # 5 minutes
+    response_cache_maxsize: int = 128          # max cached entries
+
     # Load overrides from a .env file if one exists.
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

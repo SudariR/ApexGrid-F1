@@ -90,16 +90,16 @@ export function StandingsDrawer({
           >
             {/* Header */}
             <div
-              className="px-8 py-7 flex items-center justify-between"
+              className="px-4 sm:px-8 py-5 sm:py-7 flex items-center justify-between"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
             >
               <div>
-                <div className="font-mono text-[9px] tracking-[0.25em] text-[#999999] uppercase mb-1.5">
+                <div className="font-mono text-[8px] sm:text-[9px] tracking-[0.25em] text-[#999999] uppercase mb-1 sm:mb-1.5">
                   FIA OFFICIAL · {season || 2026} · ROUND {round || 12}/24
                 </div>
                 <h3
-                  className="font-display font-black text-[#F0F0EC] uppercase"
-                  style={{ fontSize: "clamp(1rem, 2.5vw, 1.6rem)", letterSpacing: "-0.02em" }}
+                  className="font-display font-black text-[#F0F0EC] uppercase text-base sm:text-xl md:text-2xl"
+                  style={{ letterSpacing: "-0.02em" }}
                 >
                   {isDriver ? "DRIVERS'" : "CONSTRUCTORS'"} CHAMPIONSHIP
                 </h3>
@@ -107,7 +107,7 @@ export function StandingsDrawer({
 
               <button
                 onClick={onClose}
-                className="font-mono text-[9px] tracking-[0.2em] text-[#999999] hover:text-[#F0F0EC] uppercase transition-colors duration-200 flex items-center gap-2"
+                className="font-mono text-[8px] sm:text-[9px] tracking-[0.2em] text-[#999999] hover:text-[#F0F0EC] uppercase transition-colors duration-200 flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2"
                 aria-label="Close standings"
               >
                 <X className="w-3.5 h-3.5" />
@@ -117,16 +117,21 @@ export function StandingsDrawer({
 
             {/* Column header */}
             <div
-              className="px-8 py-3 grid gap-4 items-center text-[8px] font-mono tracking-[0.25em] text-[#666666] uppercase"
+              className="px-4 sm:px-8 py-2.5 sm:py-3 grid grid-cols-[28px_1fr_68px_48px] sm:grid-cols-[40px_1fr_120px_60px] gap-2 sm:gap-4 items-center"
               style={{
-                gridTemplateColumns: "40px 1fr 120px 60px",
                 borderBottom: "1px solid rgba(255,255,255,0.04)",
               }}
             >
-              <div>POS</div>
-              <div>{isDriver ? "DRIVER" : "CONSTRUCTOR"}</div>
-              <div>{isDriver ? "RECORD" : "LINEUP"}</div>
-              <div className="text-right">PTS</div>
+              {["POS", isDriver ? "DRIVER" : "TEAM", isDriver ? "WINS / POD" : "LINEUP", "PTS"].map((col, idx) => (
+                <div
+                  key={col}
+                  className={`font-mono text-[7px] sm:text-[8px] tracking-[0.2em] text-[#555555] uppercase ${
+                    idx === 3 ? "text-right" : ""
+                  }`}
+                >
+                  {col}
+                </div>
+              ))}
             </div>
 
             {/* Classification list */}
@@ -137,21 +142,18 @@ export function StandingsDrawer({
             >
               {isDriver
                 ? drivers.map((d) => {
-                    const team = getTeamColors(d.team_name);
                     return (
                       <div
                         key={d.driver_code}
-                        className="px-8 py-4 grid gap-4 items-center group transition-colors duration-150 hover:bg-white/[0.03]"
+                        className="px-4 sm:px-8 py-3 sm:py-4 grid grid-cols-[28px_1fr_68px_48px] sm:grid-cols-[40px_1fr_120px_60px] gap-2 sm:gap-4 items-center group transition-colors duration-150 hover:bg-white/[0.03]"
                         style={{
-                          gridTemplateColumns: "40px 1fr 120px 60px",
                           borderBottom: "1px solid rgba(255,255,255,0.04)",
                         }}
                       >
                         {/* Position */}
                         <div
-                          className="font-display font-black"
+                          className="font-display font-black text-sm sm:text-base"
                           style={{
-                            fontSize: "1.1rem",
                             letterSpacing: "-0.03em",
                             color: d.position === 1 ? "#00FF66" : "rgba(240,240,236,0.3)",
                           }}
@@ -160,57 +162,52 @@ export function StandingsDrawer({
                         </div>
 
                         {/* Driver name */}
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <ConstructorLogo teamName={d.team_name} size={16} />
+                        <div className="min-w-0 pr-1">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <ConstructorLogo teamName={d.team_name} size={15} />
                             <div
-                              className="font-display font-bold text-[#F0F0EC] uppercase"
-                              style={{ fontSize: "0.95rem", letterSpacing: "-0.015em" }}
+                              className="font-display font-bold text-[#F0F0EC] uppercase text-xs sm:text-[0.95rem] truncate"
+                              style={{ letterSpacing: "-0.015em" }}
                             >
                               {d.full_name}
                             </div>
                           </div>
-                          <div className="font-mono text-[8px] tracking-[0.15em] text-[#666666] uppercase mt-0.5 pl-6">
+                          <div className="font-mono text-[7.5px] sm:text-[8px] tracking-[0.15em] text-[#666666] uppercase mt-0.5 pl-5 sm:pl-6 truncate">
                             {d.team_name} &nbsp;·&nbsp; #{d.driver_number || "--"}
                           </div>
                         </div>
 
                         {/* Wins / Podiums */}
-                        <div>
-                          <div className="font-mono text-[10px] text-[#F0F0EC]">
-                            {d.wins}W{d.podiums !== undefined ? ` · ${d.podiums}P` : ""}
-                          </div>
+                        <div className="font-mono text-[8.5px] sm:text-[10px] text-[#F0F0EC] whitespace-nowrap">
+                          {d.wins}W{d.podiums !== undefined ? ` · ${d.podiums}P` : ""}
                         </div>
 
                         {/* Points */}
-                        <div className="text-right">
+                        <div className="text-right whitespace-nowrap">
                           <span
-                            className="font-display font-black text-[#F0F0EC]"
-                            style={{ fontSize: "1rem", letterSpacing: "-0.02em" }}
+                            className="font-display font-black text-[#F0F0EC] text-xs sm:text-base"
+                            style={{ letterSpacing: "-0.02em" }}
                           >
                             {d.points}
                           </span>
-                          <span className="font-mono text-[8px] text-[#555555] ml-1">PTS</span>
+                          <span className="font-mono text-[7px] sm:text-[8px] text-[#555555] ml-0.5 sm:ml-1">PTS</span>
                         </div>
                       </div>
                     );
                   })
                 : constructors.map((c) => {
-                    const team = getTeamColors(c.team_name);
                     return (
                       <div
                         key={c.team_name}
-                        className="px-8 py-4 grid gap-4 items-center group transition-colors duration-150 hover:bg-white/[0.03]"
+                        className="px-4 sm:px-8 py-3 sm:py-4 grid grid-cols-[28px_1fr_68px_48px] sm:grid-cols-[40px_1fr_120px_60px] gap-2 sm:gap-4 items-center group transition-colors duration-150 hover:bg-white/[0.03]"
                         style={{
-                          gridTemplateColumns: "40px 1fr 120px 60px",
                           borderBottom: "1px solid rgba(255,255,255,0.04)",
                         }}
                       >
                         {/* Position */}
                         <div
-                          className="font-display font-black"
+                          className="font-display font-black text-sm sm:text-base"
                           style={{
-                            fontSize: "1.1rem",
                             letterSpacing: "-0.03em",
                             color: c.position === 1 ? "#00FF66" : "rgba(240,240,236,0.3)",
                           }}
@@ -219,12 +216,12 @@ export function StandingsDrawer({
                         </div>
 
                         {/* Team + Logo */}
-                        <div>
-                          <div className="flex items-center gap-2.5">
-                            <ConstructorLogo teamName={c.team_name} size={18} />
+                        <div className="min-w-0 pr-1">
+                          <div className="flex items-center gap-1.5 sm:gap-2.5">
+                            <ConstructorLogo teamName={c.team_name} size={16} />
                             <div
-                              className="font-display font-bold text-[#F0F0EC] uppercase"
-                              style={{ fontSize: "0.95rem", letterSpacing: "-0.015em" }}
+                              className="font-display font-bold text-[#F0F0EC] uppercase text-xs sm:text-[0.95rem] truncate"
+                              style={{ letterSpacing: "-0.015em" }}
                             >
                               {c.team_name}
                             </div>
@@ -232,21 +229,21 @@ export function StandingsDrawer({
                         </div>
 
                         {/* Lineup */}
-                        <div className="font-mono text-[10px] text-[#666666] uppercase tracking-wider">
+                        <div className="font-mono text-[8.5px] sm:text-[10px] text-[#666666] uppercase tracking-wider whitespace-nowrap">
                           {c.driver_codes && c.driver_codes.length > 0
                             ? c.driver_codes.join(" · ")
                             : "--"}
                         </div>
 
                         {/* Points */}
-                        <div className="text-right">
+                        <div className="text-right whitespace-nowrap">
                           <span
-                            className="font-display font-black text-[#F0F0EC]"
-                            style={{ fontSize: "1rem", letterSpacing: "-0.02em" }}
+                            className="font-display font-black text-[#F0F0EC] text-xs sm:text-base"
+                            style={{ letterSpacing: "-0.02em" }}
                           >
                             {c.points}
                           </span>
-                          <span className="font-mono text-[8px] text-[#555555] ml-1">PTS</span>
+                          <span className="font-mono text-[7px] sm:text-[8px] text-[#555555] ml-0.5 sm:ml-1">PTS</span>
                         </div>
                       </div>
                     );
@@ -255,10 +252,10 @@ export function StandingsDrawer({
 
             {/* Footer */}
             <div
-              className="px-8 py-4 flex items-center justify-between"
+              className="px-4 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between"
               style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
             >
-              <div className="font-mono text-[8px] tracking-[0.2em] text-[#444444] uppercase">
+              <div className="font-mono text-[7.5px] sm:text-[8px] tracking-[0.2em] text-[#444444] uppercase">
                 DATA · FASTF1 API · FIA VERIFIED
               </div>
               <div

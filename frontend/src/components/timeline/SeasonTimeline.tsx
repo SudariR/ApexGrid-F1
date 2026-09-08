@@ -7,9 +7,9 @@ import { RaceEvent } from "@/types/calendar";
 import { useTimelineData } from "@/lib/hooks/useTimelineData";
 import { TimelineCircuit } from "./TimelineCircuit";
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // COUNTRY ISO2 MAP  (for flag CDN)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 const COUNTRY_ISO2: Record<string, string> = {
   BHR: "bh", SAU: "sa", AUS: "au", JPN: "jp", CHN: "cn",
   USA: "us", ITA: "it", MCO: "mc", CAN: "ca", ESP: "es",
@@ -18,9 +18,9 @@ const COUNTRY_ISO2: Record<string, string> = {
   BEL: "be",
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// FLAG GRAPHIC â€” same size/style as before
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
+// FLAG GRAPHIC — same size/style as before
+// ─────────────────────────────────────────────────────────────
 function FlagGraphic({
   countryCode,
   flagEmoji,
@@ -55,9 +55,9 @@ function FlagGraphic({
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // CANVAS CONSTANTS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 const CARD_W = 340;
 const CARD_H_NORMAL = 420;
 const CARD_H_CURRENT = 500;
@@ -66,7 +66,7 @@ const CANVAS_PADDING_X = 140;
 const CANVAS_H = 900;
 const CENTRE_Y = CANVAS_H / 2;
 
-// Slight vertical diagonals â€” detective board zigzag
+// Slight vertical diagonals — detective board zigzag
 const ROUND_Y_OFFSETS: Record<number, number> = {
   1: -60,   2: 80,   3: -40,  4: 100,
   5: -80,   6: 40,   7: -100, 8: 60,
@@ -76,9 +76,9 @@ const ROUND_Y_OFFSETS: Record<number, number> = {
   21: 80,   22: -50, 23: 70,  24: -80,
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // UTIL
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 function formatDate(dateString: string): string {
   try {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -119,9 +119,9 @@ function getDaysUntil(raceDateStr: string): number {
   }
 }
 
-// ————————————————————————————————————————————————————————————————————————————————
+// ─────────────────────────────────────────────────────────────
 // CONNECTOR THREAD SVG
-// ————————————————————————————————————————————————————————————————————————————————
+// ─────────────────────────────────────────────────────────────
 interface NodePos { x: number; y: number; }
 
 function ConnectorSvg({ nodes, canvasWidth }: { nodes: NodePos[]; canvasWidth: number }) {
@@ -159,9 +159,9 @@ function ConnectorSvg({ nodes, canvasWidth }: { nodes: NodePos[]; canvasWidth: n
   );
 }
 
-// ————————————————————————————————————————————————————————————————————————————————
+// ─────────────────────────────────────────────────────────────
 // RACE CARD
-// ————————————————————————————————————————————————————————————————————————————————
+// ─────────────────────────────────────────────────────────────
 function RaceCard({
   race, cardLeft, cardTop, isCurrent, isCompleted, isUpcoming, dotY,
 }: {
@@ -189,7 +189,7 @@ function RaceCard({
       animate={isInView ? { opacity: 1, scale: 1 } : {}}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: (race.round % 5) * 0.06 }}
     >
-      {/* — Connector dot (sits at dotY relative to cardTop) — */}
+      {/* ── Connector dot (sits at dotY relative to cardTop) ── */}
       <div
         className="absolute left-1/2 -translate-x-1/2"
         style={{ top: dotY - cardTop - 6 }}
@@ -206,7 +206,7 @@ function RaceCard({
         )}
       </div>
 
-      {/* â”€â”€ CARD SHELL â”€â”€ */}
+      {/* ── CARD SHELL ── */}
       <div
         className={`absolute inset-0 flex flex-col overflow-hidden rounded-sm transition-all duration-300
           ${isCurrent
@@ -222,7 +222,7 @@ function RaceCard({
           <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent opacity-70" />
         )}
 
-        {/* â”€â”€ HEADER: round + date â”€â”€ */}
+        {/* ── HEADER: round + date ── */}
         <div className={`flex items-center justify-between px-4 pt-4 pb-2 ${isCompleted ? "opacity-70" : ""}`}>
           <div className="flex items-center gap-2">
             {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />}
@@ -260,7 +260,7 @@ function RaceCard({
           </div>
         </div>
 
-        {/* â”€â”€ GRAND PRIX NAME â”€â”€ */}
+        {/* ── GRAND PRIX NAME ── */}
         <div className="px-4 pb-2">
           <h3 className={`font-display font-black tracking-tight uppercase leading-none ${
             isCurrent ? "text-2xl text-ink" : isCompleted ? "text-lg text-ink-mid" : "text-base text-ink-mid/80"
@@ -272,7 +272,7 @@ function RaceCard({
           </div>
         </div>
 
-        {/* â”€â”€ CIRCUIT GEOMETRY â”€â”€ */}
+        {/* ── CIRCUIT GEOMETRY ── */}
         <div className={`mx-4 flex items-center justify-center flex-1 min-h-0 ${isCurrent ? "my-1" : ""}`}>
           <TimelineCircuit
             trackPath={race.track_path}
@@ -289,7 +289,7 @@ function RaceCard({
           />
         </div>
 
-        {/* â”€â”€ WINNER / STATUS FOOTER â”€â”€ */}
+        {/* ── WINNER / STATUS FOOTER ── */}
         <div className="px-4 pb-4 pt-2 border-t border-ink-light/8 mt-auto">
           {isCompleted && race.winner && (
             <div>
@@ -364,9 +364,9 @@ function RaceCard({
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // MAIN EXPORT
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 export function SeasonTimeline() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -453,30 +453,30 @@ export function SeasonTimeline() {
       <div className="absolute inset-0 bg-engineering-grid pointer-events-none opacity-55" />
 
       {/* ── SECTION HEADER ── */}
-      <div className="relative z-10 px-6 md:px-12 lg:px-20 pt-28 pb-8">
-        <div className="section-index mb-3">
+      <div className="relative z-10 px-4 sm:px-6 md:px-12 lg:px-20 pt-16 sm:pt-20 md:pt-28 pb-6 sm:pb-8">
+        <div className="section-index mb-2 sm:mb-3">
           04 &nbsp;/&nbsp; {season} FIA FORMULA 1 WORLD CHAMPIONSHIP
         </div>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
           <div>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-display font-black tracking-tight uppercase leading-none">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black tracking-tight uppercase leading-none">
               SEASON TIMELINE
             </h2>
-            <p className="font-mono text-xs md:text-sm text-ink-light tracking-widest uppercase mt-3">
+            <p className="font-mono text-[10px] sm:text-xs md:text-sm text-ink-light tracking-widest uppercase mt-2 sm:mt-3">
               CHRONOLOGICAL ARCHIVE &bull; {totalRounds} ROUNDS &bull; REAL TRACK GEOMETRIES
             </p>
           </div>
-          <div className="font-mono text-[11px] text-ink-light tracking-widest uppercase flex flex-wrap items-center gap-4 md:gap-6">
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-ink-light opacity-50" />
+          <div className="font-mono text-[9px] sm:text-[11px] text-ink-light tracking-widest uppercase flex flex-wrap items-center gap-3 sm:gap-6">
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-ink-light opacity-50" />
               {completedCount} COMPLETED
             </span>
-            <span className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full bg-accent ${isCurrentActive ? "animate-pulse" : "opacity-80"}`} />
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <span className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-accent ${isCurrentActive ? "animate-pulse" : "opacity-80"}`} />
               RD {currentRound} {isCurrentActive ? "ACTIVE" : "NEXT UP"}
             </span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full border border-ink-light opacity-30" />
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full border border-ink-light opacity-30" />
               {upcomingCount} UPCOMING
             </span>
             <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-ink-faint/40 bg-bg/70 text-[9px] tracking-[0.15em]">
@@ -485,11 +485,10 @@ export function SeasonTimeline() {
             </span>
           </div>
         </div>
-
       </div>
 
 
-      {/* â”€â”€ HORIZONTAL CANVAS â”€â”€ */}
+      {/* ── HORIZONTAL CANVAS ── */}
       <div
         ref={scrollRef}
         id="timeline-scroll"
