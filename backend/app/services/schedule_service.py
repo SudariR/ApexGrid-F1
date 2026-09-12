@@ -1,6 +1,6 @@
 """Schedule service for returning the full season F1 race calendar."""
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 from app.services import fastf1_service as ff
@@ -22,6 +22,7 @@ KNOWN_2026_WINNERS: dict[int, dict] = {
     10: {"driver_code": "ANT", "full_name": "Kimi Antonelli", "team_name": "Mercedes", "finish_gap": "1:24:42.479"},
     11: {"driver_code": "NOR", "full_name": "Lando Norris", "team_name": "McLaren", "finish_gap": "1:39:56.180"},
     12: {"driver_code": "NOR", "full_name": "Lando Norris", "team_name": "McLaren", "finish_gap": "2:04:44.859"},
+    13: {"driver_code": "ANT", "full_name": "Kimi Antonelli", "team_name": "Mercedes", "finish_gap": "1:14:48.337"},
 }
 
 
@@ -86,12 +87,21 @@ def get_season_schedule(year: int | None = None) -> dict:
             event_date = event_dt.date()
 
         winner = None
-        if event_date and event_date < today:
-            status = "completed"
+        if event_date and event_date <= today:
             winner = _get_event_winner(season, round_num)
+            if winner is not None or event_date < today:
+                status = "completed"
+            elif current_round is None:
+                status = "current"
+                current_round = round_num
+            else:
+                status = "upcoming"
         elif current_round is None:
-            status = "current"
             current_round = round_num
+            if event_date and (event_date - timedelta(days=2)) <= today <= event_date:
+                status = "current"
+            else:
+                status = "upcoming"
         else:
             status = "upcoming"
 

@@ -89,6 +89,36 @@ function formatDate(dateString: string): string {
   } catch { return dateString.toUpperCase(); }
 }
 
+function isWeekendActive(raceDateStr: string): boolean {
+  try {
+    const [year, month, day] = raceDateStr.split("-").map(Number);
+    const raceDate = new Date(Date.UTC(year, month - 1, day));
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    
+    // Friday of race weekend (2 days before Sunday race date)
+    const weekendStart = new Date(raceDate);
+    weekendStart.setUTCDate(raceDate.getUTCDate() - 2);
+    
+    return todayUTC >= weekendStart && todayUTC <= raceDate;
+  } catch {
+    return false;
+  }
+}
+
+function getDaysUntil(raceDateStr: string): number {
+  try {
+    const [year, month, day] = raceDateStr.split("-").map(Number);
+    const raceDate = new Date(Date.UTC(year, month - 1, day));
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const diffMs = raceDate.getTime() - todayUTC.getTime();
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  } catch {
+    return 0;
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // CONNECTOR THREAD SVG
 // ─────────────────────────────────────────────────────────────
@@ -147,6 +177,8 @@ function RaceCard({
   const isInView = useInView(ref, { once: true, margin: "0px -20% 0px -20%" });
   const cardH = isCurrent ? CARD_H_CURRENT : CARD_H_NORMAL;
   const cardW = isCurrent ? CARD_W + 60 : CARD_W;
+  const activeNow = (race.status === "current" || isWeekendActive(race.race_date)) && !isCompleted;
+  const daysUntil = getDaysUntil(race.race_date);
 
   return (
     <motion.div
@@ -288,11 +320,30 @@ function RaceCard({
               </div>
             </div>
           )}
-          {isCurrent && !race.winner && (
+          {isCurrent && !race.winner && activeNow && (
             <div>
-              <div className="font-mono text-[8px] tracking-[0.2em] text-accent uppercase mb-1">RACE WEEKEND ACTIVE</div>
+              <div className="font-mono text-[8px] tracking-[0.2em] text-accent uppercase mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                RACE WEEKEND ACTIVE
+              </div>
               <div className="font-display font-black text-lg tracking-tight uppercase text-ink leading-tight">
                 GRAND PRIX IN PROGRESS
+              </div>
+              <div className="mt-2 flex gap-3 font-mono text-[9px] text-ink-light/65">
+                <span><span className="text-ink font-bold">{race.total_laps}</span> L</span>
+                <span><span className="text-ink font-bold">{race.corner_count}</span> CRN</span>
+                <span><span className="text-ink font-bold">{race.drs_zones}</span> DRS</span>
+              </div>
+            </div>
+          )}
+          {isCurrent && !race.winner && !activeNow && (
+            <div>
+              <div className="font-mono text-[8px] tracking-[0.2em] text-accent uppercase mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent/60" />
+                NEXT GRAND PRIX
+              </div>
+              <div className="font-display font-black text-lg tracking-tight uppercase text-ink leading-tight">
+                {daysUntil > 0 ? `STARTS IN ${daysUntil} ${daysUntil === 1 ? "DAY" : "DAYS"}` : "UPCOMING THIS WEEK"}
               </div>
               <div className="mt-2 flex gap-3 font-mono text-[9px] text-ink-light/65">
                 <span><span className="text-ink font-bold">{race.total_laps}</span> L</span>
@@ -330,6 +381,10 @@ export function SeasonTimeline() {
 
   const completedCount = allRaces.filter((r) => r.round < currentRound).length;
   const upcomingCount = allRaces.filter((r) => r.round > currentRound).length;
+  const currentEvent = allRaces.find((r) => r.round === currentRound);
+  const isCurrentActive =
+    currentEvent?.status === "current" ||
+    (currentEvent ? isWeekendActive(currentEvent.race_date) : false);
 
   const totalCards = allRaces.length;
   const canvasWidth = CANVAS_PADDING_X * 2 + totalCards * CARD_W + (totalCards - 1) * CARD_GAP;
@@ -417,8 +472,8 @@ export function SeasonTimeline() {
               {completedCount} COMPLETED
             </span>
             <span className="flex items-center gap-1.5 sm:gap-2">
-              <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-accent animate-pulse" />
-              RD {currentRound} CURRENT
+              <span className={`w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-accent ${isCurrentActive ? "animate-pulse" : "opacity-80"}`} />
+              RD {currentRound} {isCurrentActive ? "ACTIVE" : "NEXT UP"}
             </span>
             <span className="flex items-center gap-1.5 sm:gap-2">
               <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full border border-ink-light opacity-30" />
