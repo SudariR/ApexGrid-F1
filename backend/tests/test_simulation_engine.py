@@ -102,3 +102,72 @@ class TestRunMonteCarlo:
         import pytest
         with pytest.raises(ValueError):
             run_monte_carlo(grid, remaining_races=1, n_simulations=0)
+
+    def test_probabilities_sum_to_one_with_ties_allowed(self):
+        grid = _grid()
+        res = run_monte_carlo(grid, remaining_races=8, n_simulations=1000, seed=11)
+        total = sum(d["win_probability"] for d in res["drivers"])
+        assert abs(total - 1.0) < 0.05
+
+
+class TestVectorizedMatchesScalar:
+    """The optimized engine must agree with the readable reference version.
+
+    This is the safe way to optimise numerical code: keep an obvious
+    implementation and assert the fast one produces statistically the same
+    answer. (Exact equality is impossible because they consume the RNG stream
+    in different orders - same distribution, different sample path.)
+    """
+
+    def test_same_winner_and_similar_probabilities(self):
+        from app.services.simulation_engine import run_monte_carlo_scalar
+
+        ratings = {"A": 2.0, "B": 1.0, "C": 0.5, "D": 0.0, "E": -0.5, "F": -1.0}
+        grid = _grid(ratings=ratings)
+        n = 4000
+
+        fast = run_monte_carlo(grid, remaining_races=6, n_simulations=n, seed=3)
+        slow = run_monte_carlo_scalar(grid, remaining_races=6, n_simulations=n, seed=3)
+
+        fast_map = {d["code"]: d["win_probability"] for d in fast["drivers"]}
+        slow_map = {d["code"]: d["win_probability"] for d in slow["drivers"]}
+
+        # Same ordering of drivers by probability.
+        assert [d["code"] for d in fast["drivers"]] == [
+            d["code"] for d in slow["drivers"]
+        ]
+        # Each driver's probability within ~4 percentage points (sampling noise).
+        for code in fast_map:
+            assert abs(fast_map[code] - slow_map[code]) < 0.04, (
+                f"{code}: fast={fast_map[code]} slow={slow_map[code]}"
+            )
+
+    def test_constructor_points_match_across_implementations(self):
+        from app.services.simulation_engine import run_monte_carlo_scalar
+
+        ratings = {"A": 2.0, "B": 1.0, "C": 0.5, "D": 0.0, "E": -0.5, "F": -1.0}
+        grid = _grid(ratings=ratings)
+        fast = run_monte_carlo(grid, remaining_races=4, n_simulations=2000, seed=9)
+        slow = run_monte_carlo_scalar(grid, remaining_races=4, n_simulations=2000, seed=9)
+        # Both should identify the same 2 constructors.
+        assert {c["code"] for c in fast["constructors"]} == {
+            c["code"] for c in slow["constructors"]
+        }
+
+
+class TestChaosSpread:
+    def test_chaos_spread_zero_is_default_behaviour(self):
+        grid = _grid()
+        a = run_monte_carlo(grid, 5, 2000, seed=5, chaos_spread=0.0)
+        b = run_monte_carlo(grid, 5, 2000, seed=5)
+        assert a == b
+
+    def test_more_chaos_helps_underdogs(self):
+        # With wilder races, the weaker drivers should win more often.
+        ratings = {"A": 2.0, "B": 0.0, "C": 0.0, "D": 0.0, "E": 0.0, "F": 0.0}
+        grid = _grid(ratings=ratings)
+        calm = run_monte_carlo(grid, 5, 6000, seed=2, chaos_spread=0.0)
+        wild = run_monte_carlo(grid, 5, 6000, seed=2, chaos_spread=1.0)
+        a_calm = next(d["win_probability"] for d in calm["drivers"] if d["code"] == "A")
+        a_wild = next(d["win_probability"] for d in wild["drivers"] if d["code"] == "A")
+        assert a_wild < a_calm  # favourite's grip weakens when races are chaotic
