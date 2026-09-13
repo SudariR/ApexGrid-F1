@@ -1,11 +1,9 @@
 import logging
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 
-from typing import Any
-
-from app.core.config import get_settings
 from app.services import fastf1_service as ff
 from app.services.errors import UpstreamDataUnavailableError
 
@@ -33,7 +31,7 @@ def find_latest_completed_session(year: int):
     today = datetime.now().date()
     # Keep races dated today or earlier; sort newest-first.
     races["_date"] = pd.to_datetime(races["EventDate"]).dt.date
-    past = races[races["_date"] <= today].sort_values("_date", ascending=False)
+    past = pd.DataFrame(races[races["_date"] <= today]).sort_values(by="_date", ascending=False)
 
     if past.empty:
         raise UpstreamDataUnavailableError(f"No completed races found for {year}.")
@@ -55,10 +53,10 @@ def find_latest_completed_session(year: int):
     )
 
 
-def _driver_to_dict(row: pd.Series) -> dict:
+def _driver_to_dict(row: Any) -> dict:
     """Map one results-table row to the plain dict a PodiumDriver schema needs."""
     return {
-        "position": int(row.get("Position", 0)),
+        "position": _safe_int(row.get("Position")) or 0,
         "driver_code": str(row.get("Abbreviation", "")),
         "full_name": str(row.get("FullName", "")),
         "team_name": str(row.get("TeamName", "")),
@@ -72,6 +70,8 @@ def _driver_to_dict(row: pd.Series) -> dict:
 
 def _safe_int(v):
     try:
+        if pd.isna(v):
+            return None
         return int(v)
     except (TypeError, ValueError):
         return None
@@ -79,6 +79,8 @@ def _safe_int(v):
 
 def _safe_float(v):
     try:
+        if pd.isna(v):
+            return None
         return float(v)
     except (TypeError, ValueError):
         return None
@@ -86,12 +88,15 @@ def _safe_float(v):
 
 def hero_from_session(session, year: int) -> dict:
     """Map an already-loaded Race session into the Hero payload dict."""
-    results = ff.get_results(session).sort_values("Position")
-    top3 = results.head(3)
-    top3 = results.head(3)
+    results = ff.get_results(session)
+    if results is None or results.empty:
+        raise UpstreamDataUnavailableError("Session results data is empty or unavailable.")
+
+    sorted_results = results.sort_values(by="Position")
+    top3 = sorted_results.head(3)
 
     # Winner's completed lap count doubles as the race distance.
-    winner = results.iloc[0]
+    winner = sorted_results.iloc[0]
     total_laps = _safe_int(winner.get("Laps"))
 
     # Race date: take the local race date from the loaded event info.
@@ -104,11 +109,12 @@ def hero_from_session(session, year: int) -> dict:
         "season": year,
         "round": int(event["RoundNumber"]),
         "event_name": str(event["EventName"]),
+
         "country": str(event["Country"]),
         "location": str(event["Location"]),
         "race_date": race_date,
         "total_laps": total_laps,
-        "winner": podium[0],
+        "winner": podium[0] if podium else None,
         "podium": podium,
     }
 

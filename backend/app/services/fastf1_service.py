@@ -1,9 +1,12 @@
 import logging
-import os
 from pathlib import Path
 
+import pandas as pd
+from typing import Any
 import fastf1
 from fastf1.core import Session
+from fastf1.ergast import Ergast
+from fastf1.ergast.interface import ErgastRawResponse
 
 from app.core.config import get_settings
 from app.services.errors import UpstreamDataUnavailableError
@@ -18,7 +21,6 @@ _SESSION_TYPES = ("FP1", "FP2", "FP3", "Q", "S", "R")
 
 
 def init_cache() -> None:
-    
     settings = get_settings()
     cache_path = Path(settings.fastf1_cache_dir)
     cache_path.mkdir(parents=True, exist_ok=True)
@@ -28,7 +30,6 @@ def init_cache() -> None:
 
 
 def _get_session(year: int, gp_round: int, session_type: str) -> Session:
-    
     st = session_type.upper()
     if st not in _SESSION_TYPES:
         raise ValueError(
@@ -36,14 +37,16 @@ def _get_session(year: int, gp_round: int, session_type: str) -> Session:
         )
     return fastf1.get_session(year, gp_round, st)
 
-def _ergast():
-    from fastf1.ergast import Ergast
+
+def _ergast() -> Ergast:
     return Ergast()
 
 
 def get_driver_standings_raw(season: int):
     """Return the raw DriverStandings list for a season (latest completed GP)."""
     resp = _ergast().get_driver_standings(season=season, result_type="raw")
+    if not isinstance(resp, ErgastRawResponse) or not resp:
+        raise UpstreamDataUnavailableError(f"Driver standings unavailable for season {season}")
     block = resp[0]  # single request -> one element
     return block["season"], block["round"], block["DriverStandings"]
 
@@ -51,9 +54,27 @@ def get_driver_standings_raw(season: int):
 def get_constructor_standings_raw(season: int):
     """Return the raw ConstructorStandings list (latest completed GP)."""
     resp = _ergast().get_constructor_standings(season=season, result_type="raw")
+    if not isinstance(resp, ErgastRawResponse) or not resp:
+        raise UpstreamDataUnavailableError(f"Constructor standings unavailable for season {season}")
     block = resp[0]
     return block["season"], block["round"], block["ConstructorStandings"]
+    
+def get_qualifying_raw(season: int, gp_round: int):
+    """Return the raw QualifyingResults list for one round, or [] if absent.
 
+    Ergast treats qualifying with a special 'round': if a session is missing
+    (e.g. sprint-qualifying weekend formats), the round may not have classic
+    qualifying data, so we return an empty list rather than erroring.
+    """
+    try:
+        resp = _ergast().get_qualifying_results(season=season, round=gp_round, result_type="raw")
+        if not isinstance(resp, ErgastRawResponse) or not resp:
+            return []
+        block = resp[0]
+        return block.get("QualifyingResults", [])
+    except Exception as exc:  # round has no qualifying data -> treat as none
+        logger.warning("No qualifying data for %s round %s: %s", season, gp_round, exc)
+        return []
 
 # --- Schedule helpers ------------------------------------------------------
 
@@ -65,8 +86,8 @@ def get_schedule(year: int):
     dropping the pre-season testing entry which fastf1 labels round 0.
     """
     schedule = fastf1.get_event_schedule(year)
-    races = schedule[schedule["RoundNumber"] >= 1].copy()
-    races = races.sort_values("RoundNumber").reset_index(drop=True)
+    races = pd.DataFrame(schedule[schedule["RoundNumber"] >= 1]).copy()
+    races = races.sort_values(by="RoundNumber").reset_index(drop=True)
     return races
 
 
@@ -83,7 +104,7 @@ def load_session(
     *,
     require_laps: bool = True,
 ) -> Session:
-   
+    """Load a session, returning a clean, *verified* object."""
     session = _get_session(year, gp_round, session_type)
 
     try:
@@ -95,8 +116,7 @@ def load_session(
             f"Could not load {session_type} session for GP round {gp_round} in {year}."
         ) from exc
 
-    # Verify what we asked for actually loaded.
-    if require_laps and getattr(session, "laps", None) is None:
+    if require_laps and not _has_laps(session):
         logger.warning("Lap data missing for %s GP %s %s (provider issue?).",
                        year, gp_round, session_type)
         raise UpstreamDataUnavailableError(
@@ -104,3 +124,16 @@ def load_session(
         )
 
     return session
+
+
+def _has_laps(session: Session) -> bool:
+    """Safely report whether the session has lap data loaded.
+
+    Uses the private _laps attribute to avoid triggering fastf1's raising
+    property. Treats any non-empty frame as 'present'.
+    """
+    try:
+        laps = getattr(session, "_laps", None)
+        return laps is not None and len(laps) > 0
+    except Exception:
+        return False

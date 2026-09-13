@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   APEXGRID F1 — EDITORIAL DESIGN SYSTEM
+   Inspired by landonorris.com visual language
+   ============================================================ */
+
+:root {
+  --bg:          #F5F5F0;
+  --bg-alt:      #EBEBEB;
+  --ink:         #0D0D0F;
+  --ink-mid:     #5C5C60;
+  --ink-light:   #999999;
+  --ink-faint:   #CBCBC8;
+  --accent:      #00FF66;
+  --surface:     #FFFFFF;
+  --line:        rgba(13, 13, 15, 0.08);
+  --line-strong: rgba(13, 13, 15, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  background-color: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-alt); }
+::-webkit-scrollbar-thumb { background: var(--ink-faint); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+::selection { background: var(--accent); color: var(--ink); }
+
+/* ============================================================
+   EDITORIAL TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+/* Monumental scale — fills large areas */
+.text-monumental {
+  font-size: clamp(6rem, 18vw, 20rem);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+}
+
+/* Editorial — section titles */
+.text-editorial {
+  font-size: clamp(3.5rem, 8vw, 9rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+}
+
+/* Display — driver names */
+.text-display-xl {
+  font-size: clamp(2.5rem, 5vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+}
+
+/* Classification rows */
+.text-classification {
+  font-size: clamp(1.8rem, 3vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+}
+
+/* Driver number — large oversized */
+.text-driver-number {
+  font-size: clamp(4rem, 10vw, 13rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+}
+
+/* Annotation — technical labels around objects */
+.text-annotation {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+
+/* Micro — coordinates, sector labels */
+.text-micro {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+/* ============================================================
+   OUTLINE TEXT — scroll-driven watermark
+   ============================================================ */
+.text-outline-editorial {
+  -webkit-text-stroke: 1px rgba(13, 13, 15, 0.10);
+  color: transparent;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+}
+
+/* ============================================================
+   STRUCTURAL LINE SYSTEM — no more cards
+   ============================================================ */
+
+/* Thin horizontal classification separator */
+.classification-rule {
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+}
+
+.classification-rule-accent {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--line) 60%);
+}
+
+/* Leader line for spatial annotations */
+.leader-line {
+  position: absolute;
+  height: 1px;
+  background: var(--ink-faint);
+  transform-origin: left center;
+}
+
+/* Annotation label */
+.annotation-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
+
+/* Annotation value */
+.annotation-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+/* ============================================================
+   SUBTLE BACKGROUND GRID
+   ============================================================ */
+.bg-engineering-grid {
+  background-image:
+    linear-gradient(to right, rgba(13, 13, 15, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 13, 15, 0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================================
+   TRACK GEOMETRY
+   ============================================================ */
+.track-line {
+  fill: none;
+  stroke: rgba(13, 13, 15, 0.12);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.track-line-animated {
+  fill: none;
+  stroke: rgba(13, 13, 15, 0.15);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: drawTrack 2.4s ease-out 0.3s forwards;
+}
+
+.track-accent-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@keyframes drawTrack {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ============================================================
+   TELEMETRY PULSE LINE
+   ============================================================ */
+@keyframes telemetryPulse {
+  0% { opacity: 0; transform: scaleX(0); transform-origin: left; }
+  50% { opacity: 1; transform: scaleX(1); transform-origin: left; }
+  51% { transform-origin: right; }
+  100% { opacity: 0; transform: scaleX(0); transform-origin: right; }
+}
+
+.telemetry-pulse {
+  animation: telemetryPulse 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   SECTION TRANSITIONS — typographic, not pill dividers
+   ============================================================ */
+.section-index {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+/* ============================================================
+   DARK DRAWER OVERRIDE
+   ============================================================ */
+.drawer-dark {
+  background: #0D0D0F;
+  color: #F0F0EC;
+}
+
+.drawer-dark .drawer-rule {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   CLASSIFICATION ROW HOVER
+   ============================================================ */
+.classification-row {
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.classification-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.classification-row:hover::before {
+  opacity: 1;
+}
+
+/* ============================================================
+   SCROLL INDICATOR
+   ============================================================ */
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(0.6); }
+}
+
+.scroll-line {
+  animation: scrollPulse 2s ease-in-out infinite;
+}

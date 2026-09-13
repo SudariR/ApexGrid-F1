@@ -39,7 +39,7 @@ def get_standings_payload(season: int | None = None) -> dict:
     year = season or datetime.now().year
 
     drv_season, drv_round, drv_rows = ff.get_driver_standings_raw(year)
-    con_season, con_round, con_rows = ff.get_constructor_standings_raw(year)
+    _con_season, con_round, con_rows = ff.get_constructor_standings_raw(year)
 
     drivers = [_driver_row_to_entry(r) for r in drv_rows]
     constructors = [_constructor_row_to_entry(r) for r in con_rows]
