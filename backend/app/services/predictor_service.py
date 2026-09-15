@@ -35,7 +35,7 @@ def _compute_remaining_races(season: int, as_of_round: int) -> int:
     schedule = ff.get_schedule(season)
     if schedule is None or schedule.empty:
         return 0
-    return (schedule["RoundNumber"] > as_of_round).sum()
+    return int((schedule["RoundNumber"] > as_of_round).sum())
 
 
 def _load_drivers(season: int):
@@ -79,25 +79,52 @@ def _load_drivers(season: int):
     return as_of_round, drivers, driver_names, driver_teams
 
 
-def _apply_overrides(drivers: list[DriverInput], overrides) -> None:
-    """Mutate DriverInput objects based on What-If overrides (by code).
+def _apply_overrides(drivers: list[DriverInput], overrides) -> list[DriverInput]:
+    """Return a NEW list of DriverInput with What-If overrides applied.
+
+    WHY NOT MUTATE IN PLACE?
+    ------------------------
+    Mutating the caller's objects is a hidden side effect: if the caller reuses
+    that list (e.g. to run a baseline then a scenario), the first run would
+    silently corrupt the second. Returning fresh copies keeps the function pure
+    and makes baseline-vs-scenario comparisons correct.
 
     Accepts either Pydantic DriverScenario objects or plain dicts, so it is
     easy to call both from tests and from the HTTP endpoint.
     """
-    by_code = {d.code: d for d in drivers}
+    # Build a normalised view of the overrides keyed by driver code.
+    by_code: dict[str, dict] = {}
     for ov in overrides:
-        # Normalise attribute access for both Pydantic objects and dicts.
         code = ov.code if hasattr(ov, "code") else ov.get("code")
         rating = ov.rating if hasattr(ov, "rating") else ov.get("rating")
-        dnf = ov.dnf_probability if hasattr(ov, "dnf_probability") else ov.get("dnf_probability")
-        d = by_code.get(code)
-        if d is None:
-            continue  # ignore override for an unknown driver
-        if rating is not None:
-            d.rating = float(rating)
-        if dnf is not None:
-            d.dnf_probability = float(dnf)
+        dnf = (
+            ov.dnf_probability
+            if hasattr(ov, "dnf_probability")
+            else ov.get("dnf_probability")
+        )
+        if code is not None:
+            by_code[code] = {"rating": rating, "dnf_probability": dnf}
+
+    out: list[DriverInput] = []
+    for d in drivers:
+        ov = by_code.get(d.code)
+        if ov is None:
+            out.append(d)  # no override -> reuse the original (immutable use)
+            continue
+        out.append(
+            DriverInput(
+                code=d.code,
+                constructor_code=d.constructor_code,
+                points=d.points,
+                rating=ov["rating"] if ov["rating"] is not None else d.rating,
+                dnf_probability=(
+                    ov["dnf_probability"]
+                    if ov["dnf_probability"] is not None
+                    else d.dnf_probability
+                ),
+            )
+        )
+    return out
 
 
 def get_predict_payload(
@@ -106,8 +133,13 @@ def get_predict_payload(
     seed: int | None = None,
     remaining_races: int | None = None,
     overrides=None,
+    chaos_spread: float = 0.0,
 ) -> dict:
-    """Build the full predictor response payload."""
+    """Build the full predictor response payload.
+
+    chaos_spread > 0 models some races being wilder than others (see
+    simulation_engine.run_monte_carlo).
+    """
     overrides = overrides or []
     year = season or datetime.now().year
 
@@ -119,13 +151,15 @@ def get_predict_payload(
     else:
         remaining = remaining_races
 
-    _apply_overrides(drivers, overrides)
+    # Apply What-If overrides (returns new driver objects; does not mutate).
+    drivers = _apply_overrides(drivers, overrides)
 
     result = run_monte_carlo(
         drivers=drivers,
         remaining_races=remaining,
         n_simulations=n_simulations,
         seed=seed,
+        chaos_spread=chaos_spread,
     )
 
     # Decorate driver probabilities with names; derive constructor names.
