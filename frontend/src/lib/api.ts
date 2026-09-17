@@ -2,7 +2,7 @@ import { HeroResponse, DriverStanding, ConstructorStanding, StandingsResponse } 
 import { BackendScheduleResponse } from "@/types/calendar";
 import { MOCK_HERO_DATA, MOCK_DRIVERS_STANDINGS, MOCK_CONSTRUCTORS_STANDINGS } from "./mockData";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
 
 const DRIVER_NUMBERS: Record<string, number> = {
   NOR: 4,
